@@ -1,0 +1,6 @@
+Tools used to create this project:
+
+python (2.7 since pyusb not 3-compatible)
+wxGlade (required if you edit .wxg files)
+
+I'm using Aptana Studio 3 as an IDE, on a trial basis. You should be able to use others just fine.

@@ -27,7 +27,8 @@ class USBInterface(object):
         self._isubclass = intf.bInterfaceSubClass
         self._protocol = intf.bInterfaceProtocol
         self._iintfc = intf.iInterface
-        self._endpoints = [USBEndpoint(x) for x in intf]
+        self.endpoints = [USBEndpoint(x) for x in intf]
+        #TODO: find the string descriptor and get a description of this interface
         
     def dump(self):
         val = "Interface: #{}, class {}, subclass {}, protocol {}, #endpoints: {}".format(
@@ -62,3 +63,6 @@ class USBInterface(object):
 #8     iInterface     1     Index     
 #
 #Index of String Descriptor Describing this interface
+
+    def __unicode__(self):
+        return u'intf[{}]: {}({})'.format(self._num, self._iclass, self._isubclass)

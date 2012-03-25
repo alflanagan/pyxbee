@@ -69,14 +69,17 @@ class USBDevice(object):
         self._sub_class = dev.bDeviceSubClass
         self._vendor = dev.idVendor
         self._product = dev.idProduct
-        self._configs = [USBConfiguration(cfg) for cfg in dev]
+        self.configs = [USBConfiguration(cfg) for cfg in dev]
             
 
     def __unicode__(self):
         return U'Device: version:{} class:{} ({}), subclass: {}, vendor: {}, product: {}'.format(self._usb_version, self._dev_class,
                                                                         USBDevice.std_device_class_codes[self._dev_class],
                                                                         self._sub_class, self._vendor, self._product)
-        
+
+    def as_compact_str(self):
+        return U'%s: %s (%s -- %s)' % (USBDevice.std_device_class_codes[self._dev_class],
+                                self._sub_class, self._vendor, self._product)
     def dump(self):
         val = U'Device: version:{} class:{} ({}), subclass: {}, vendor: {}, product: {}'.format(self._usb_version, self._dev_class,
                                                                         USBDevice.std_device_class_codes[self._dev_class],

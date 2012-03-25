@@ -28,7 +28,7 @@ class USBConfiguration(object):
         self._num_intfcs = cfg.bNumInterfaces
         self._value = cfg.bConfigurationValue
         self._attrs = cfg.bmAttributes
-        self._interfaces = [USBInterface(n) for n in cfg]
+        self.interfaces = [USBInterface(n) for n in cfg]
 #        0     bLength     1     Number     
 #
 #Size of Descriptor in Bytes
@@ -61,8 +61,11 @@ class USBConfiguration(object):
 #Maximum Power Consumption in 2mA units 
 #        
 
+    def __unicode__(self):
+        return u'conf[{}]'.format(self._value)
+    
     def dump(self):
         d = "config: #interfaces: {}".format(self._num_intfcs)
-        for intfc in self._interfaces:
+        for intfc in self.interfaces:
             d += "\n{}".format(intfc.dump())
         return d

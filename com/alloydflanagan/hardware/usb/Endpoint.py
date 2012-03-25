@@ -6,6 +6,7 @@ Created on Mar 6, 2012
 @author: lloyd
 '''
 from com.alloydflanagan.hardware.errors import InvalidArgumentType
+import usb
 
 class USBEndpoint(object):
     '''
@@ -15,8 +16,12 @@ class USBEndpoint(object):
 
     def __init__(self, endp):
         '''
-        Constructor
+        Creates a wrapper for pyusb Endpoint object.
+        
         '''
+        print(type(endp))
+        assert isinstance(endp, usb.core.Endpoint)
+        
         if endp.bDescriptorType != 5:
             raise InvalidArgumentType('Was expecting descriptor type 5, got {}'.format(endp.bDescriptorType))
         self._endp_object = endp
@@ -56,3 +61,14 @@ class USBEndpoint(object):
     def dump(self):
         val = '\nEndpoint: {}, attribs: {}, interval: {}'.format(self._address, self._attrs, self._interval)
         return val
+    
+    def __unicode__(self):
+        return "Endpoint: {}, attribs: {}".format(self._address, self._attrs)
+    
+    def get_ui(self):
+        '''Return a dictionary whose keys are UI elements, and values are string representations
+        of the matching object attributes. This allows controller to populate a view automatically.
+        (work in progress)
+        '''
+        pass
+    

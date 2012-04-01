@@ -17,12 +17,15 @@ class USBTopFrame(wx.Frame):
         self.top_panel = wx.Panel(self, -1)
         self.display_panel = wx.Panel(self.top_panel, -1)
         self.notebook_1 = wx.Notebook(self.display_panel, -1, style=0)
+        self.notebook_1_pane_2 = wx.Panel(self.notebook_1, -1)
         self.notebook_1_pane_1 = wx.Panel(self.notebook_1, -1)
         self.selection_panel = wx.Panel(self.top_panel, -1)
         self.selection_splitter = wx.SplitterWindow(self.selection_panel, -1, style=wx.SP_3D|wx.SP_BORDER)
         self.selection_panel_pane_2 = wx.Panel(self.selection_splitter, -1)
         self.selection_panel_pane_1 = wx.Panel(self.selection_splitter, -1)
         self.top_frame_statusbar = self.CreateStatusBar(1, wx.ST_SIZEGRIP)
+        self.device_lbl = wx.StaticText(self.selection_panel, -1, "Devices")
+        self.interfaces_lbl = wx.StaticText(self.selection_panel, -1, "Interfaces")
         self.device_list_box = wx.ListBox(self.selection_panel_pane_1, -1, choices=[], style=wx.LB_SINGLE|wx.LB_NEEDED_SB)
         self.tree_usb_probe = wx.TreeCtrl(self.selection_panel_pane_2, -1, style=wx.TR_HAS_BUTTONS|wx.TR_NO_LINES|wx.TR_DEFAULT_STYLE|wx.SUNKEN_BORDER)
         self.label_1 = wx.StaticText(self.notebook_1_pane_1, -1, "Spec:")
@@ -30,12 +33,18 @@ class USBTopFrame(wx.Frame):
         self.label_3 = wx.StaticText(self.notebook_1_pane_1, -1, "Class:")
         self.label_4 = wx.StaticText(self.notebook_1_pane_1, -1, "Vendor:")
         self.product_lbl = wx.StaticText(self.notebook_1_pane_1, -1, "Product: ")
-        self.button_close = wx.Button(self.display_panel, -1, "&Close")
+        self.intfc_num_label = wx.StaticText(self.notebook_1_pane_2, -1, "Number:")
+        self.intfc_class_label = wx.StaticText(self.notebook_1_pane_2, -1, "Class:")
+        self.intfc_sub_label = wx.StaticText(self.notebook_1_pane_2, -1, "Subclass:")
+        self.intf_protocol_label = wx.StaticText(self.notebook_1_pane_2, -1, "Protocol:")
+        self.intfc_intfc_lbl = wx.StaticText(self.notebook_1_pane_2, -1, "Interface:")
+        self.button_close = wx.Button(self.display_panel, -1, "Close")
 
         self.__set_properties()
         self.__do_layout()
 
         self.Bind(wx.EVT_LISTBOX, self.OnClick, self.device_list_box)
+        self.Bind(wx.EVT_SPLITTER_SASH_POS_CHANGED, self.onSplitChange, self.selection_splitter)
         self.Bind(wx.EVT_BUTTON, self.closeOnClick, self.button_close)
         # end wxGlade
         self.initial_size = Size(440, 516)
@@ -53,7 +62,7 @@ class USBTopFrame(wx.Frame):
     def __set_properties(self):
         # begin wxGlade: USBTopFrame.__set_properties
         self.SetTitle("USBProbe")
-        self.SetSize((440, 516))
+        self.SetSize((525, 533))
         self.top_frame_statusbar.SetStatusWidths([-1])
         # statusbar fields
         top_frame_statusbar_fields = ["top_frame_statusbar"]
@@ -67,17 +76,24 @@ class USBTopFrame(wx.Frame):
         panel_sizer = wx.BoxSizer(wx.VERTICAL)
         display_sizer = wx.BoxSizer(wx.VERTICAL)
         button_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        interface_grid_sizer = wx.GridSizer(5, 4, 0, 0)
         grid_sizer_1 = wx.GridSizer(5, 4, 0, 0)
+        sizer_1 = wx.BoxSizer(wx.VERTICAL)
         selection_sizer = wx.BoxSizer(wx.HORIZONTAL)
         sizer_6 = wx.BoxSizer(wx.HORIZONTAL)
         sizer_5 = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_2 = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_2.Add(self.device_lbl, 0, 0, 0)
+        sizer_2.Add(self.interfaces_lbl, 0, 0, 0)
+        sizer_1.Add(sizer_2, 0, wx.EXPAND, 0)
         sizer_5.Add(self.device_list_box, 1, wx.EXPAND, 0)
         self.selection_panel_pane_1.SetSizer(sizer_5)
         sizer_6.Add(self.tree_usb_probe, 1, wx.EXPAND, 0)
         self.selection_panel_pane_2.SetSizer(sizer_6)
         self.selection_splitter.SplitVertically(self.selection_panel_pane_1, self.selection_panel_pane_2)
         selection_sizer.Add(self.selection_splitter, 1, wx.EXPAND, 0)
-        self.selection_panel.SetSizer(selection_sizer)
+        sizer_1.Add(selection_sizer, 1, wx.EXPAND, 0)
+        self.selection_panel.SetSizer(sizer_1)
         panel_sizer.Add(self.selection_panel, 1, wx.EXPAND, 0)
         grid_sizer_1.Add(self.label_1, 0, 0, 0)
         grid_sizer_1.Add(self.label_2, 0, 0, 0)
@@ -85,9 +101,16 @@ class USBTopFrame(wx.Frame):
         grid_sizer_1.Add(self.label_4, 0, 0, 0)
         grid_sizer_1.Add(self.product_lbl, 0, 0, 0)
         self.notebook_1_pane_1.SetSizer(grid_sizer_1)
+        interface_grid_sizer.Add(self.intfc_num_label, 0, 0, 0)
+        interface_grid_sizer.Add(self.intfc_class_label, 0, 0, 0)
+        interface_grid_sizer.Add(self.intfc_sub_label, 0, 0, 0)
+        interface_grid_sizer.Add(self.intf_protocol_label, 0, 0, 0)
+        interface_grid_sizer.Add(self.intfc_intfc_lbl, 0, 0, 0)
+        self.notebook_1_pane_2.SetSizer(interface_grid_sizer)
         self.notebook_1.AddPage(self.notebook_1_pane_1, "Device")
+        self.notebook_1.AddPage(self.notebook_1_pane_2, "Interface")
         display_sizer.Add(self.notebook_1, 1, wx.EXPAND, 0)
-        button_sizer.Add(self.button_close, 0, 0, 0)
+        button_sizer.Add(self.button_close, 0, wx.ALIGN_RIGHT, 0)
         display_sizer.Add(button_sizer, 0, wx.EXPAND, 0)
         self.display_panel.SetSizer(display_sizer)
         panel_sizer.Add(self.display_panel, 1, wx.EXPAND, 0)
@@ -102,9 +125,7 @@ class USBTopFrame(wx.Frame):
         #print "Event handler `closeOnClick' not implemented"
         #event.Skip()
 
-    #for some reason, wxGlade keeps adding an OnClick event even though
-    #this exists. If it does, you'll have to delete the duplicate.
-    def OnClick(self, event):
+    def OnClick(self, event): # wxGlade: USBTopFrame.<event_handler>
         """
         Respond to click in list box by populating the tree control, 
         and displaying the device information in the info pane.
@@ -127,10 +148,15 @@ class USBTopFrame(wx.Frame):
                 new_intfc = self.tree_usb_probe.AppendItem(new_config, unicode(intfc), wx.ID_ANY, wx.ID_ANY, None)
                 for endp in intfc.endpoints:
                     new_endp = self.tree_usb_probe.AppendItem(new_intfc, unicode(endp), wx.ID_ANY, wx.ID_ANY, None)
+        event.Skip()
                     
-        #for 
-        
 
+    def onSplitChange(self, event): # wxGlade: USBTopFrame.<event_handler>
+        print("calling self.device_lbl.SetMinSize")
+        #self.device_lbl.SetMinSize(Size(self.device_lbl.GetMinHeight(), self.device_list_box.GetMinWidth()))
+        #self.interfaces_lbl.SetMinSize(Size(self.interfaces_lbl.GetMinHeight(), self.tree_usb_probe.GetMinWidth()))
+        event.Skip()
+        
 # end of class USBTopFrame
 
 

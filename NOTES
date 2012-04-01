@@ -1,0 +1,22 @@
+This should be a sort of running blog of comments on the overall project.
+This line is instructions for the vim editor: vim:textwidth=80
+If you're not using vim, ignore the above.
+
+3/31/12:
+Added another tab to notebook. However, I think I've over-complicated this; we
+might be better served by replacing the notebook entirely with some sort of rich
+text control. When a new item is selected we'd just re-write the control
+contents.
+
+Discovered the wonder of spacers and began adding some to layout, to improve
+appearance. Layout continues to be a challenge, it looks like I might be better
+off replacing GridSizers with nested BoxSizers.
+
+As of now I'm giving up on wxGlade. The USBProbeMain.py file will now be updated
+by hand, and USBProbe.wxg will be removed. wxGlade has a nice interface but is
+WAY too buggy to be useful. Time saved with tool < time lost dealing with weird
+UI issues and (occasionally) hand-editing corrupted XML.
+
+So far I have been unable to find a decent free graphical UI designer for
+wxPython. WTF? wxGlade seems moribund, pythoncard hasn't been updated in years.
+Did everyone give up on layout editors and do it by hand?

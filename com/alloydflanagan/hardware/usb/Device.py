@@ -11,12 +11,12 @@ from com.alloydflanagan.hardware.usb.Configuration import USBConfiguration
 
 #can we inherit from usb.core.Device?
 class USBDevice(object):
-    '''
+    """
     A device on the USB bus. Corresponds to a USB device descriptor.
     http://www.beyondlogic.org/usbnutshell/usb5.shtml
     
 
-    '''
+    """
 
     std_device_class_codes = defaultdict(lambda: 'Unknown Class',
                                          {0x00: 'Unspecified', #stores class info in interface descriptors
@@ -51,13 +51,13 @@ class USBDevice(object):
                                          })
 
     def __init__(self, dev):
-        '''
+        """
         Creates a USBDevice object based on the device descriptor. A USBDevice has some information
         about the overall device, and a collection of L{USBDescriptors}.
         
         @param dev: U{usb.core.Device<http://pyusb.sourceforge.net/docs/1.0/tutorial.html>}
                     object returned by usb.core.find() 
-        '''
+        """
         try:
             if dev.bDescriptorType != 1:
                 raise InvalidArgumentType('Not a device descriptor (descriptor type %d, need 1).' % dev.bDescriptorType)
@@ -76,13 +76,13 @@ class USBDevice(object):
         """
         self.spec = '%04x' % dev.bcdUSB
         self.usb_version = (int(self.spec[:2]), int(self.spec[2]), int(self.spec[3]))
-        '''Class Code (Assigned by USB Org). if 0, each interface specifies its own code
-           If 0xFF, the class code is vendor specified.'''
+        """USB Version as a tuple of ints (major, minor, really minor)."""
         self.version_string = '.'.join([str(i) for i in self.usb_version])
-        #cray code to find name of all bound methods of usb.core.dev.
+        """Convenient dotted representation of version (e.g. 2.0.0)"""
+   
+        #crazy code to find name of all bound methods of usb.core.dev.
         #print([a for a in dir(dev) if type(eval('dev.{0}'.format(a))) == type(self.as_compact_str)])
         self.configs = [USBConfiguration(cfg) for cfg in dev]
-#        if self._sub_class == 0:
 
     def __unicode__(self):
         return U'Device: version:{} class:{} ({}), subclass: {}, vendor: {}, product: {}'.format(

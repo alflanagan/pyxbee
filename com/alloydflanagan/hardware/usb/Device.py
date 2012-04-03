@@ -9,14 +9,17 @@ from com.alloydflanagan.hardware.errors import InvalidArgumentType
 from collections import defaultdict
 from com.alloydflanagan.hardware.usb.Configuration import USBConfiguration
 
+#can we inherit from usb.core.Device?
 class USBDevice(object):
     '''
     A device on the USB bus. Corresponds to a USB device descriptor.
     http://www.beyondlogic.org/usbnutshell/usb5.shtml
     
+
     '''
-    std_device_class_codes = defaultdict(lambda: 'Unknown Class', 
-                                         {0x00: 'Use class information in the Interface Descriptors',
+
+    std_device_class_codes = defaultdict(lambda: 'Unknown Class',
+                                         {0x00: 'Unspecified', #stores class info in interface descriptors
                                           0x01: 'Audio',
                                           0x02: 'Communications and CDC Control',
                                           0x03: 'HID (Human Interface Device)',
@@ -41,11 +44,11 @@ class USBDevice(object):
                                           #02h      01h      Host Wire Adapter Control/Data interface.  Definition can be found in the Wireless USB Specification in Chapter 8.
                                           #         02h      Device Wire Adapter Control/Data interface.  Definition can be found in the Wireless USB Specification in Chapter 8.
                                           #         03h      Device Wire Adapter Isochronous interface.  Definition can be found in the Wireless USB Specification in Chapter 8.
-             
+
                                           0xEF: 'Miscellaneous',
                                           0xFE: 'Application Specific',
                                           0xFF: 'Vendor Specific',
-                                         }) 
+                                         })
 
     def __init__(self, dev):
         '''
@@ -57,33 +60,42 @@ class USBDevice(object):
         '''
         try:
             if dev.bDescriptorType != 1:
-                raise InvalidArgumentType('Not a device descriptor (descriptor type %d, need 1).' % dev.bDescriptorType)     
+                raise InvalidArgumentType('Not a device descriptor (descriptor type %d, need 1).' % dev.bDescriptorType)
         except AttributeError:
             raise InvalidArgumentType('Not a descriptor: expecting usb.core.Device.')
-        
-        self._spec = '%04x' % dev.bcdUSB
-        self._usb_version = (int(self._spec[:2]), int(self._spec[2]), int(self._spec[3]))      
-        self._dev_class = dev.bDeviceClass
+
+        self.device = dev
+        """
+        The original usb.core.Device object. 
+        attributes: address bDescriptorType bDeviceClass bDeviceProtocol bDeviceSubClass bLength bMaxPacketSize0
+                    bNumConfigurations bcdDevice bcdUSB bus default_timeout iManufacturer iProduct iSerialNumber
+                    idProduct idVendor
+        methods: attach_kernel_driver ctrl_transfer detach_kernel_driver get_active_configuration is_kernel_driver_active
+                 read reset set_configuration set_interface_altsetting write
+                 
+        """
+        self.spec = '%04x' % dev.bcdUSB
+        self.usb_version = (int(self.spec[:2]), int(self.spec[2]), int(self.spec[3]))
         '''Class Code (Assigned by USB Org). if 0, each interface specifies its own code
            If 0xFF, the class code is vendor specified.'''
-        self._sub_class = dev.bDeviceSubClass
-        self._vendor = dev.idVendor
-        self._product = dev.idProduct
+        self.version_string = '.'.join([str(i) for i in self.usb_version])
+        #cray code to find name of all bound methods of usb.core.dev.
+        #print([a for a in dir(dev) if type(eval('dev.{0}'.format(a))) == type(self.as_compact_str)])
         self.configs = [USBConfiguration(cfg) for cfg in dev]
-            
+#        if self._sub_class == 0:
 
     def __unicode__(self):
-        return U'Device: version:{} class:{} ({}), subclass: {}, vendor: {}, product: {}'.format(self._usb_version, self._dev_class,
-                                                                        USBDevice.std_device_class_codes[self._dev_class],
-                                                                        self._sub_class, self._vendor, self._product)
+        return U'Device: version:{} class:{} ({}), subclass: {}, vendor: {}, product: {}'.format(
+            self.usb_version, self.device.bDeviceClass, USBDevice.std_device_class_codes[self.device.bDeviceClass],
+            self.device.bDeviceSubClass, self.device.idVendor, self.device.iProduct)
 
     def as_compact_str(self):
-        return U'%s: %s (%s -- %s)' % (USBDevice.std_device_class_codes[self._dev_class],
-                                self._sub_class, self._vendor, self._product)
+        return U'%s: %s (%s -- %s)' % (USBDevice.std_device_class_codes[self.device.bDeviceClass],
+                                self.device.bDeviceSubClass, self.device.idVendor, self.device.iProduct)
     def dump(self):
-        val = U'Device: version:{} class:{} ({}), subclass: {}, vendor: {}, product: {}'.format(self._usb_version, self._dev_class,
-                                                                        USBDevice.std_device_class_codes[self._dev_class],
-                                                                        self._sub_class, self._vendor, self._product)
+        val = U'Device: version:{} class:{} ({}), subclass: {}, vendor: {}, product: {}'.format(
+            self.usb_version, self.device.bDeviceClass, USBDevice.std_device_class_codes[self.device.bDeviceClass],
+            self.device.bDeviceSubClass, self.device.idVendor, self.device.iProduct)
         for cfg in self._configs:
             val += '\n   config: {}'.format(cfg.dump())
         return val

@@ -19,9 +19,6 @@ class USBEndpoint(object):
         Creates a wrapper for pyusb Endpoint object.
         
         '''
-        print(type(endp))
-        assert isinstance(endp, usb.core.Endpoint)
-        
         if endp.bDescriptorType != 5:
             raise InvalidArgumentType('Was expecting descriptor type 5, got {}'.format(endp.bDescriptorType))
         self._endp_object = endp

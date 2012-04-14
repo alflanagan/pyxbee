@@ -1,5 +1,23 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from __future__ import division, print_function, unicode_literals
+
+#Copyright 2012 A. Lloyd Flanagan
+#This file is part of Pyxb.
+
+#Pyxb is free software: you can redistribute it and/or modify
+#it under the terms of the GNU General Public License as published by
+#the Free Software Foundation, either version 3 of the License, or
+#(at your option) any later version.
+
+#Pyxb is distributed in the hope that it will be useful,
+#but WITHOUT ANY WARRANTY; without even the implied warranty of
+#MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#GNU General Public License for more details.
+
+#You should have received a copy of the GNU General Public License
+#along with Pyxb.  If not, see <http://www.gnu.org/licenses/>.
+
 
 import wx
 from wx._core import Size
@@ -57,25 +75,12 @@ class USBTopFrame(wx.Frame):
         #up underneath new. This must be a bug.
         self.display_html.SetBackgroundColour(self.GetBackgroundColour())
 
-    @staticmethod
-    def get_non_methods(any_obj):
-        """
-        Returns a list of strings, made up of the names of attributes of any_obj
-        which do not start with an underscore or name a method.
-        
-        Probably needs to exclude additional types.
-        
-        TODO: Return tuples of (name, value)?
-        """
-        return [a for a in dir(any_obj) if not a.startswith('_')
-                 and type(eval('any_obj.{}'.format(a))) <> type(USBTopFrame.show_device_info)]
-
     def show_device_info(self, dev):
         """
         Builds display of info about USB device in bottom panel. Called whenever a device
         entry is selected by user.
         """
-        attrs = USBTopFrame.get_non_methods(dev.device)
+        attrs = dev.get_non_methods()
 
         html_text = '<h3>USB Device (v. {})</h3><ul>'.format(dev.version_string)
         for attr in attrs:

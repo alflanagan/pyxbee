@@ -1,15 +1,33 @@
 # -*- coding: utf-8 -*-
-from __future__ import division, print_function
-'''
+from __future__ import division, print_function, unicode_literals
+
+#Copyright 2012 A. Lloyd Flanagan
+#This file is part of Pyxb.
+
+#Pyxb is free software: you can redistribute it and/or modify
+#it under the terms of the GNU General Public License as published by
+#the Free Software Foundation, either version 3 of the License, or
+#(at your option) any later version.
+
+#Pyxb is distributed in the hope that it will be useful,
+#but WITHOUT ANY WARRANTY; without even the implied warranty of
+#MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#GNU General Public License for more details.
+
+#You should have received a copy of the GNU General Public License
+#along with Pyxb.  If not, see <http://www.gnu.org/licenses/>.
+
+"""
 Created on Mar 5, 2012
 
-@author: lloyd
-'''
+@author: A. Lloyd Flanagan
+"""
 from com.alloydflanagan.hardware.errors import InvalidArgumentType
 from collections import defaultdict
 from com.alloydflanagan.hardware.usb.Configuration import USBConfiguration
 
-#can we inherit from usb.core.Device?
+#can we inherit from usb.core.Device? A: Nope. We can forward attribute
+#accesses to the enclosed object, however.
 class USBDevice(object):
     """
     A device on the USB bus. Corresponds to a USB device descriptor.
@@ -66,7 +84,8 @@ class USBDevice(object):
 
         self.device = dev
         """
-        The original usb.core.Device object. 
+        The original L{usb.core.Device} object. 
+        
         attributes: address bDescriptorType bDeviceClass bDeviceProtocol bDeviceSubClass bLength bMaxPacketSize0
                     bNumConfigurations bcdDevice bcdUSB bus default_timeout iManufacturer iProduct iSerialNumber
                     idProduct idVendor
@@ -74,15 +93,37 @@ class USBDevice(object):
                  read reset set_configuration set_interface_altsetting write
                  
         """
+        #print('got device {}'.format(dev))
+        #print(dev.bcdUSB)
+        #print('%04x' % dev.bcdUSB)
+        #print(self.device)
         self.spec = '%04x' % dev.bcdUSB
+
+        #print('bcdUSB {}, spec {}'.format(dev.bcdUSB, self.spec))
         self.usb_version = (int(self.spec[:2]), int(self.spec[2]), int(self.spec[3]))
         """USB Version as a tuple of ints (major, minor, really minor)."""
+        #print(self.usb_version)
         self.version_string = '.'.join([str(i) for i in self.usb_version])
         """Convenient dotted representation of version (e.g. 2.0.0)"""
-   
-        #crazy code to find name of all bound methods of usb.core.dev.
-        #print([a for a in dir(dev) if type(eval('dev.{0}'.format(a))) == type(self.as_compact_str)])
-        self.configs = [USBConfiguration(cfg) for cfg in dev]
+        #print('version_string: {}'.format(self.version_string))
+        self.configs = []
+        for cfg in self.device:
+            self.configs.append(USBConfiguration(cfg))
+
+    def __iter__(self):
+        return self.configs.__iter__()
+
+    def __getattr__(self, aname):
+        """
+        Exposes the attributes of the underlying L{usb.core.Device} object.
+        Poor man's inheritance since we can't inherit from usb.core.Device.
+        """
+        #if we don't have an attribute, try the underlying device
+        try:
+            return getattr(self.device, aname)
+        except AttributeError:
+            #replace name of class in Device's error message.
+            raise AttributeError("'{}' object has no attribute '{}'".format(self.__class__.__name__, aname))
 
     def __unicode__(self):
         return U'Device: version:{} class:{} ({}), subclass: {}, vendor: {}, product: {}'.format(
@@ -92,11 +133,12 @@ class USBDevice(object):
     def as_compact_str(self):
         return U'%s: %s (%s -- %s)' % (USBDevice.std_device_class_codes[self.device.bDeviceClass],
                                 self.device.bDeviceSubClass, self.device.idVendor, self.device.iProduct)
+
     def dump(self):
         val = U'Device: version:{} class:{} ({}), subclass: {}, vendor: {}, product: {}'.format(
             self.usb_version, self.device.bDeviceClass, USBDevice.std_device_class_codes[self.device.bDeviceClass],
             self.device.bDeviceSubClass, self.device.idVendor, self.device.iProduct)
-        for cfg in self._configs:
+        for cfg in self.configs:
             val += '\n   config: {}'.format(cfg.dump())
         return val
 
@@ -128,3 +170,19 @@ class USBDevice(object):
 #17     bNumConfigurations     1     Integer     
 #
 #Number of Possible Configurations
+
+if __name__ == '__main__':
+    from com.alloydflanagan.hardware.usb.Devices import USBDevices
+    print('started.')
+    ds = USBDevices()
+    print("Found {} devices.".format(len(ds)))
+    for d in ds:
+        print('==========================================================')
+        dev = d.device
+        skip_types = ('method-wrapper', 'instancemethod',
+                      'builtin_function_or_method', 'type', '_ResourceManager')
+        attrs = [a for a in dir(dev) if a not in ('__dict__', '__doc__', '__module__')]
+        attrs = [a for a in attrs if
+               type(getattr(dev, a)).__name__  not in skip_types]
+        for a in attrs:
+            print('{}: {}'.format(a, getattr(d, a)))

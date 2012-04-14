@@ -1,35 +1,54 @@
 # -*- coding: utf-8 -*-
-from __future__ import division, print_function
-'''
+from __future__ import division, print_function, unicode_literals
+
+#Copyright 2012 A. Lloyd Flanagan
+#This file is part of Pyxb.
+
+#Pyxb is free software: you can redistribute it and/or modify
+#it under the terms of the GNU General Public License as published by
+#the Free Software Foundation, either version 3 of the License, or
+#(at your option) any later version.
+
+#Pyxb is distributed in the hope that it will be useful,
+#but WITHOUT ANY WARRANTY; without even the implied warranty of
+#MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#GNU General Public License for more details.
+
+#You should have received a copy of the GNU General Public License
+#along with Pyxb.  If not, see <http://www.gnu.org/licenses/>.
+
+"""
 Created on Mar 6, 2012
 
-@author: lloyd
-'''
+@author: A. Lloyd Flanagan
+"""
 from com.alloydflanagan.hardware.errors import InvalidArgumentType
 import usb
 
 class USBEndpoint(object):
-    '''
+    """
     A USB endpoint descriptor.
-    '''
-
+    """
 
     def __init__(self, endp):
-        '''
+        """
         Creates a wrapper for pyusb Endpoint object.
         
-        '''
+        """
         if endp.bDescriptorType != 5:
             raise InvalidArgumentType('Was expecting descriptor type 5, got {}'.format(endp.bDescriptorType))
-        self._endp_object = endp
-        #'bLength', 'bRefresh', 'bSynchAddress', 'index', 'read', 'write'
-        self._address = endp.bEndpointAddress
+        self.endp = endp
+
+    def __getattr__(self, x):
+        try:
+            return getattr(self.endp, x)
+        except AttributeError:
+            raise AttributeError("'{}' object has no attribute '{}'".format(self.__class__.__name__, x))
+
 #Bits 0..3b Endpoint Number.
 #Bits 4..6b Reserved. Set to Zero
 #Bits 7 Direction 0 = Out, 1 = In (Ignored for Control Endpoints)
-        self._synchaddr = endp.bSynchAddress
         #TODO: define a class for accessing bitmaps. damn.
-        self._attrs = endp.bmAttributes
 #    00 = Control
 #    01 = Isochronous
 #    10 = Bulk
@@ -49,23 +68,19 @@ class USBEndpoint(object):
 #    01 = Feedback Endpoint
 #    10 = Explicit Feedback Data Endpoint
 #    11 = Reserved
-        self._packet_size = endp.wMaxPacketSize
-        '''Maximum Packet Size this endpoint is capable of sending or receiving'''
-        self._interval = endp.bInterval
-        '''Interval for polling endpoint data transfers. Value in frame counts. Ignored for Bulk & Control Endpoints.
-           Isochronous must equal 1 and field may range from 1 to 255 for interrupt endpoints.'''
-        
+
     def dump(self):
-        val = '\nEndpoint: {}, attribs: {}, interval: {}'.format(self._address, self._attrs, self._interval)
+        val = '\nEndpoint: {}, attribs: {}, interval: {}'.format(
+                            self.bEndpointAddress, self.bmAttributes, self.bInterval)
         return val
-    
+
     def __unicode__(self):
-        return "Endpoint: {}, attribs: {}".format(self._address, self._attrs)
-    
+        return "Endpoint: {}, attribs: {}".format(self.bEndpointAddress, self.bmAttributes)
+
     def get_ui(self):
-        '''Return a dictionary whose keys are UI elements, and values are string representations
+        """Return a dictionary whose keys are UI elements, and values are string representations
         of the matching object attributes. This allows controller to populate a view automatically.
         (work in progress)
-        '''
+        """
         pass
-    
+

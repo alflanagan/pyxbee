@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import division, print_function
+from __future__ import division, print_function, unicode_literals
 '''
 Created on Mar 6, 2012
 
@@ -24,11 +24,19 @@ class USBConfiguration(object):
         '''
         if cfg.bDescriptorType != 2:
             raise InvalidArgumentType('Expected descriptor type 2, got {}'.format(cfg.bDescriptorType))
-        self._total_len = cfg.wTotalLength
-        self._num_intfcs = cfg.bNumInterfaces
-        self._value = cfg.bConfigurationValue
-        self._attrs = cfg.bmAttributes
+        self.config = cfg
         self.interfaces = [USBInterface(n) for n in cfg]
+
+    def __iter__(self):
+        return self.interfaces.__iter__()
+
+    def __getattr__(self, aname):
+        """
+        If we don't have an attribute, check for attribute on underlying
+        L{usb.core.Configuration} object.
+        """
+        return getattr(self.config, aname)
+
 #        0     bLength     1     Number     
 #
 #Size of Descriptor in Bytes
@@ -62,10 +70,19 @@ class USBConfiguration(object):
 #        
 
     def __unicode__(self):
-        return u'conf[{}]'.format(self._value)
-    
+        return 'conf[{}]'.format(self.config.bConfigurationValue)
+
     def dump(self):
-        d = "config: #interfaces: {}".format(self._num_intfcs)
-        for intfc in self.interfaces:
+        d = "config: #interfaces: {}".format(self.config.bNumInterfaces)
+        for intfc in self:
             d += "\n{}".format(intfc.dump())
         return d
+
+if __name__ == '__main__':
+    from com.alloydflanagan.hardware.usb.Devices import USBDevices
+    print('USBConfiguration tests started.')
+    ds = USBDevices()
+    print("Found {} devices.".format(len(ds)))
+    for d in ds:
+        for c in d:
+            print('{}: {}'.format('bNumInterfaces', c.bNumInterfaces))

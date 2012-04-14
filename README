@@ -1,5 +1,20 @@
 This is a project to develop a python interface to XBee miniature radios.
 
-All code is licensed under the GPL, Version 3.
+I pronounce it like "pie ex bee", but if you prefer to make it sound like
+"pyxie" no one's stopping you. :)
 
-OK, there's another project on Github called PyXbee. It doesn't, however, seem to be active or have a lot of code. Suggestions for a better name are solicited.
+This file is part of Pyxb.
+
+Pyxb is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+Pyxb is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with Pyxb.  If not, see <http://www.gnu.org/licenses/>.
+

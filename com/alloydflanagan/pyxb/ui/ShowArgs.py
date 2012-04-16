@@ -1,7 +1,24 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
+
+#Copyright 2012 A. Lloyd Flanagan
+#This file is part of Pyxb.
+
+#Pyxb is free software: you can redistribute it and/or modify
+#it under the terms of the GNU General Public License as published by
+#the Free Software Foundation, either version 3 of the License, or
+#(at your option) any later version.
+
+#Pyxb is distributed in the hope that it will be useful,
+#but WITHOUT ANY WARRANTY; without even the implied warranty of
+#MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#GNU General Public License for more details.
+
+#You should have received a copy of the GNU General Public License
+#along with Pyxb.  If not, see <http://www.gnu.org/licenses/>.
 import wx
+
 
 class MyFrame(wx.Frame):
     def __init__(self, *args, **kwds):
@@ -10,7 +27,8 @@ class MyFrame(wx.Frame):
         self.SetTitle("ShowArgs")
         self.panel_1 = wx.Panel(self, wx.ID_ANY)
 
-        self.txtOut = wx.TextCtrl(self.panel_1, wx.ID_ANY, "", style=wx.TE_MULTILINE | wx.TE_READONLY)
+        self.txtOut = wx.TextCtrl(self.panel_1, wx.ID_ANY, "",
+                                  style=wx.TE_MULTILINE | wx.TE_READONLY)
         self.txtOut.SetMinSize((600, 300))
         self.txtOut.SetBackgroundColour(wx.Colour(216, 216, 191))
 
@@ -21,7 +39,9 @@ class MyFrame(wx.Frame):
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
         sizer_2 = wx.FlexGridSizer(2, 1, 10, 0)
         sizer_2.Add(self.txtOut, 1, wx.ALL | wx.EXPAND, 0)
-        sizer_2.Add(self.btnClose, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.ALIGN_CENTER_VERTICAL | wx.FIXED_MINSIZE, 11)
+        sizer_2.Add(self.btnClose, 0,
+                    wx.ALIGN_CENTER_HORIZONTAL |
+                    wx.ALIGN_CENTER_VERTICAL | wx.FIXED_MINSIZE, 11)
         self.panel_1.SetSizer(sizer_2)
         sizer_2.AddGrowableRow(0)
         sizer_2.AddGrowableCol(0)
@@ -41,6 +61,7 @@ class MyFrame(wx.Frame):
         for x in strIter:
             newVal = "{}\n\n{}".format(newVal, x)
         self.txtOut.SetValue(newVal)
+
 
 class ShowArgs(wx.App):
     def OnInit(self):

@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-import wx
 
 #Copyright 2012 A. Lloyd Flanagan
 #This file is part of Pyxb.
@@ -18,28 +17,27 @@ import wx
 #You should have received a copy of the GNU General Public License
 #along with Pyxb.  If not, see <http://www.gnu.org/licenses/>.
 
-'''
+"""
 Created on Mar 18, 2012
 
 @author: A. Lloyd Flanagan
-'''
+"""
 import usb.core
 from com.alloydflanagan.hardware.usb.Device import USBDevice
 
 
 class USBDevices(object):
-    '''
-    A container for a list of USBDevice objects, with the ability to fill itself
-    by traversing the list of USB devices.
-    
-    '''
+    """
+    A container for a list of USBDevice objects, with the ability to fill
+    itself by traversing the list of USB devices.
 
+    """
 
     def __init__(self, traverse=True):
-        '''
-        Create a USBDevices collection. When traverse is true, will traverse USB buses on the 
-        machine and fill itself.
-        '''
+        """
+        Create a USBDevices collection. When traverse is true, will traverse
+        USB buses on the machine and fill itself.
+        """
         self._devices = []
         if traverse:
             #print('Devices()')
@@ -66,4 +64,3 @@ if __name__ == '__main__':
     for f in d:
         print(unicode(f))
         print(f.as_compact_str())
-

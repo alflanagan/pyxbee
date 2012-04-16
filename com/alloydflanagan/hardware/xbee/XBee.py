@@ -23,14 +23,13 @@ Created on Mar 5, 2012
 @author: A. Lloyd Flanagan
 """
 
+
 class XBee(object):
     """
     A single connected XBee radio
     """
 
-
     def __init__(self, device):
         """
         Constructor
         """
-

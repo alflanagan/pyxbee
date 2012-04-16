@@ -21,6 +21,7 @@ from __future__ import division, print_function, unicode_literals
 from PyxbMainFrame import PyxbMainFrame
 import wx
 
+
 def doApp():
     app = wx.PySimpleApp(0)
     wx.InitAllImageHandlers()

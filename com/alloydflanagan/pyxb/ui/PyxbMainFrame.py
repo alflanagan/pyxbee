@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 import wx
+from serial.tools import list_ports
 
 #Copyright 2012 A. Lloyd Flanagan
 #This file is part of Pyxb.
@@ -21,10 +22,26 @@ import wx
 
 class PyxbMainFrame(wx.Frame):
     def __init__(self, *args, **kwds):
+        """
+        Application window for pyxb UI.
+
+        @param ports: A list of com ports to use. Defaults to all ports
+        returned by comports().
+
+        @type ports: Return type of L{serial.tools.list_ports.comports}
+
+        """
+
         kwds["style"] = wx.DEFAULT_FRAME_STYLE
         wx.Frame.__init__(self, *args, **kwds)
 
-        self.ButtonsPanel = wx.Panel(self, -1, style=wx.RAISED_BORDER | wx.TAB_TRAVERSAL)
+        try:
+            self.ports = kwds['ports']
+        except KeyError:
+            self.ports = list_ports.comports()
+
+        self.ButtonsPanel = wx.Panel(self, -1,
+                                     style=wx.RAISED_BORDER | wx.TAB_TRAVERSAL)
 
         self.WidgetsPanel = wx.Panel(self, -1)
         self.WidgetsPanel.SetBackgroundColour(wx.Colour(216, 216, 191))
@@ -36,24 +53,31 @@ class PyxbMainFrame(wx.Frame):
         self.frame_1_statusbar.SetStatusWidths([-1])
         frame_1_statusbar_fields = ["frame_1_statusbar"]
         for i in range(len(frame_1_statusbar_fields)):
-            self.frame_1_statusbar.SetStatusText(frame_1_statusbar_fields[i], i)
+            self.frame_1_statusbar.SetStatusText(frame_1_statusbar_fields[i],
+                                                 i)
 
-        self.RadioList = wx.StaticText(self.WidgetsPanel, -1, "Detected Devices", style=wx.ALIGN_CENTRE)
+        self.RadioList = wx.StaticText(self.WidgetsPanel, -1,
+                                       "Detected Devices",
+                                       style=wx.ALIGN_CENTRE)
         self.RadioList.SetBackgroundColour(wx.Colour(216, 216, 191))
-        self.list_box_1 = wx.ListBox(self.WidgetsPanel, -1, choices=[], style=wx.LB_SINGLE | wx.LB_NEEDED_SB)
+        self.list_box_1 = wx.ListBox(self.WidgetsPanel, -1, choices=[],
+                                     style=wx.LB_SINGLE | wx.LB_NEEDED_SB)
         self.list_box_1.SetMinSize((45, 66))
 
-        self.SepPanel = wx.Panel(self, -1, style=wx.RAISED_BORDER | wx.TAB_TRAVERSAL)
+        self.SepPanel = wx.Panel(self, -1,
+                                 style=wx.RAISED_BORDER | wx.TAB_TRAVERSAL)
         self.SepPanel.SetMinSize((-1, 8))
         self.SepPanel.SetBackgroundColour(wx.Colour(216, 216, 191))
 
-        self.CommPanel = wx.Panel(self, -1, style=wx.SUNKEN_BORDER | wx.TAB_TRAVERSAL)
+        self.CommPanel = wx.Panel(self, -1,
+                                  style=wx.SUNKEN_BORDER | wx.TAB_TRAVERSAL)
         self.CommPanel.SetBackgroundColour(wx.Colour(216, 216, 191))
         self.CommPanel.SetForegroundColour(wx.Colour(0, 0, 0))
 
         self.CloseButton = wx.Button(self.ButtonsPanel, -1, "Close")
         self.CloseButton.SetBackgroundColour(wx.Colour(159, 191, 255))
-        self.CloseButton.SetFont(wx.Font(10, wx.MODERN, wx.NORMAL, wx.BOLD, 0, "Sans"))
+        self.CloseButton.SetFont(wx.Font(10, wx.MODERN, wx.NORMAL, wx.BOLD,
+                                         0, "Sans"))
         self.ButtonsPanel.SetBackgroundColour(wx.Colour(216, 216, 191))
 
         self.SetSize((500, 600))
@@ -63,12 +87,14 @@ class PyxbMainFrame(wx.Frame):
 
     def build_button_panel(self):
         sizer_2 = wx.BoxSizer(wx.HORIZONTAL)
-        sizer_2.Add(self.CloseButton, 0, wx.ALL | wx.ALIGN_CENTER_HORIZONTAL | wx.SHAPED, 4)
+        sizer_2.Add(self.CloseButton, 0,
+                    wx.ALL | wx.ALIGN_CENTER_HORIZONTAL | wx.SHAPED, 4)
         self.ButtonsPanel.SetSizer(sizer_2)
 
     def build_widget_panel(self):
         WidgetsSizer = wx.FlexGridSizer(2, 3, 0, 0)
-        WidgetsSizer.Add(self.RadioList, 0, wx.ALL | wx.ALIGN_CENTER_HORIZONTAL, 4)
+        WidgetsSizer.Add(self.RadioList, 0,
+                         wx.ALL | wx.ALIGN_CENTER_HORIZONTAL, 4)
         WidgetsSizer.Add(self.list_box_1, 1, wx.EXPAND, 0)
         self.WidgetsPanel.SetSizer(WidgetsSizer)
 

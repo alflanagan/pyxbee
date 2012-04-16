@@ -25,14 +25,13 @@ Created on Mar 5, 2012
 
 
 import usb.core
-import usb.util
 from com.alloydflanagan.hardware.usb.Device import USBDevice
+
 
 class XBees(object):
     """
     Collection of all connected XBee radios
     """
-
 
     def __init__(self):
         """

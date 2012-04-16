@@ -23,7 +23,7 @@ Created on Mar 6, 2012
 @author: A. Lloyd Flanagan
 """
 from com.alloydflanagan.hardware.errors import InvalidArgumentType
-import usb
+
 
 class USBEndpoint(object):
     """
@@ -33,17 +33,20 @@ class USBEndpoint(object):
     def __init__(self, endp):
         """
         Creates a wrapper for pyusb Endpoint object.
-        
+
         """
         if endp.bDescriptorType != 5:
-            raise InvalidArgumentType('Was expecting descriptor type 5, got {}'.format(endp.bDescriptorType))
+            raise InvalidArgumentType(
+                'Was expecting descriptor type 5, got {}'.format(
+                    endp.bDescriptorType))
         self.endp = endp
 
     def __getattr__(self, x):
         try:
             return getattr(self.endp, x)
         except AttributeError:
-            raise AttributeError("'{}' object has no attribute '{}'".format(self.__class__.__name__, x))
+            raise AttributeError("'{}' object has no attribute '{}'".format(
+                                    self.__class__.__name__, x))
 
 #Bits 0..3b Endpoint Number.
 #Bits 4..6b Reserved. Set to Zero
@@ -71,16 +74,18 @@ class USBEndpoint(object):
 
     def dump(self):
         val = '\nEndpoint: {}, attribs: {}, interval: {}'.format(
-                            self.bEndpointAddress, self.bmAttributes, self.bInterval)
+                self.bEndpointAddress, self.bmAttributes, self.bInterval)
         return val
 
     def __unicode__(self):
-        return "Endpoint: {}, attribs: {}".format(self.bEndpointAddress, self.bmAttributes)
+        return "Endpoint: {}, attribs: {}".format(
+                self.bEndpointAddress, self.bmAttributes)
 
     def get_ui(self):
-        """Return a dictionary whose keys are UI elements, and values are string representations
-        of the matching object attributes. This allows controller to populate a view automatically.
-        (work in progress)
+        """
+        Return a dictionary whose keys are UI elements, and values are string
+        representations of the matching object attributes. This allows
+        controller to populate a view automatically. (work in progress)
+
         """
         pass
-

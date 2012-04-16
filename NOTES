@@ -37,3 +37,11 @@ Dropped the tabbed notebook UI element and replaced it with an HTMLWindow,
 which just gets new contents when the user clicks an item. This is working
 pretty well. It also lends itself to generating output based on the dynamic
 attributes of the Device object, which I expect will be more robust.
+
+4/15/12:
+
+Removing USB stuff. It's not necessary as the radios all communicate with
+serial protocol anyway. See new separate project 'usbprobe'.
+
+Updated files to PEP8 formatting standards. I have reservations about the
+80-character line length, but what the hell.

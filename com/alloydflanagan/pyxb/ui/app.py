@@ -22,12 +22,21 @@ from PyxbMainFrame import PyxbMainFrame
 import wx
 
 
+class PyxbApp(wx.PySimpleApp):
+
+    def __init__(self, *args, **kwargs):
+        super(PyxbApp, self).__init__(*args, **kwargs)
+        wx.InitAllImageHandlers()
+        self.top_frame = PyxbMainFrame(None, -1, "")
+        self.SetTopWindow(self.top_frame)
+
+    def Show(self):
+        self.top_frame.Show()
+
+
 def doApp():
-    app = wx.PySimpleApp(0)
-    wx.InitAllImageHandlers()
-    frame_1 = PyxbMainFrame(None, -1, "")
-    app.SetTopWindow(frame_1)
-    frame_1.Show()
+    app = PyxbApp(0)
+    app.Show()
     app.MainLoop()
 
 if __name__ == "__main__":

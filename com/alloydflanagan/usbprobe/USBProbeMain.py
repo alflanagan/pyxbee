@@ -62,6 +62,9 @@ class USBTopFrame(wx.Frame):
 
 
 class USBProbeMain(wx.App):
+    '''An app to display the results of probing all USB devices on the
+    system. I need to be able to do probe to find XBees, so this is both
+    a useful utility and a test for the USB interface.'''
     def OnInit(self):
         wx.InitAllImageHandlers()
         top_frame = USBTopFrame(None, -1, "")

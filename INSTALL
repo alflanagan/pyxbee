@@ -1,6 +1,24 @@
-1. Make sure you have python 2.7 installed. Earlier versions may work but I'm not trying to avoid 2.7-only features, so you're on your own.
-2. (optional) Create a virtual environment for the code to live in. If you don't use virtualenv, you should definitely check it out (http://pypi.python.org/pypi/virtualenv). I use virtualenvwrapper to make life even easier (http://pypi.python.org/pypi/virtualenvwrapper).
-3. Use pip to install required python extensions. From the top-level directory you can say
+1. Make sure you have python 2.7 installed. Earlier versions may work but I'm
+not trying to avoid 2.7-only features, so you're on your own.
+
+2. (optional) Create a virtual environment for the code to live in. If you
+don't use virtualenv, you should definitely check it out
+(http://pypi.python.org/pypi/virtualenv). I use virtualenvwrapper to make life
+even easier (http://pypi.python.org/pypi/virtualenvwrapper).
+
+3. Use pip to install required python extensions. From the top-level directory
+you can say:
+
     pip -r modules.pip 
-4. Install wxGlade if you want to change the UI files. If you edit the wxGlade-generated files, be careful to only modify parts of the file wxGlade doesn't write to. wxGlade design files end in .wxg; generated files will have the same name but a .py extension.
-5. If you don't want to install wxGlade, you will need wxPython (http://wxpython.org). If you're on windows, you may be able to use "pip install wxpython"; unfortunately that doesn't seem to work for Unix.
+
+4. Install wxPython (http://wxpython.org). If you're on Windows, you may be
+able to use "pip install wxpython"; unfortunately that doesn't seem to work for
+Unix. You may have an adequate version pre-installed. I'm developing with
+version 2.8, don't know if the code is compatible with earlier versions.
+
+5. To set up an XBee radio, connected to a USB port, on a serial port in Linux:
+see http://forums.reprap.org/read.php?12,4546. I added the line usbserial
+vendor=0x4348 product=0x5523 to my /etc/modules file.
+
+6. For Windows, you can go to your manufacturer's web site. I went to 
+http://digi.com and downloaded x-ctu and Windows 7 USB serial port drivers.

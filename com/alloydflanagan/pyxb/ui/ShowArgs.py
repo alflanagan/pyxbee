@@ -64,6 +64,9 @@ class MyFrame(wx.Frame):
 
 
 class ShowArgs(wx.App):
+    '''An app that pops up a window and displays its command-line arguments.
+    Why? I needed a way to debug launch configurations in Eclipse. Maybe it
+    will be useful again.'''
     def OnInit(self):
         wx.InitAllImageHandlers()
         frame_1 = MyFrame(None, -1, "")

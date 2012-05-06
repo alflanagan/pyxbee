@@ -3,6 +3,7 @@ from __future__ import division, print_function, unicode_literals
 import threading
 import time
 from com.alloydflanagan.hardware.xbee.APIFrameStream import APIFrameStream
+from com.alloydflanagan.hardware.xbee import APIFrame
 
 #Copyright 2012 A. Lloyd Flanagan
 #This file is part of Pyxb.
@@ -124,8 +125,13 @@ class XBee(object):
         @param args: Positional params which are forwarded to Serial.__init__()
         @param kwarg: Keyword params, also forwarded to Serial.__init__()
         """
-        super(XBee, self).__init__(*args, **kwargs)
+        super(XBee, self).__init__()
         self.ID = 0
+        try:
+            self.listeners = kwargs['listeners']
+            del kwargs['listeners']
+        except KeyError:
+            self.listeners = []
         self.frame_stream = APIFrameStream(device_name, *args, **kwargs)
         self.get_ID()
 
@@ -144,14 +150,6 @@ class XBee(object):
         self.write_buff.flush()
 
     def get_ID(self):
-        if not self.ID:
-            self.activate_at_mode()
-            self.send_line("ATID")
-            time.sleep(1)
-            newID = self.read_buff.readline()
-            cr_find = newID.find('\r')
-            if cr_find:
-                newID = newID[cr_find + 1:]
-            if len(newID):
-                self.ID = int(newID, 16)
-        return self.ID
+        get_id_request = APIFrame()
+        self.frame_stream.write(get_id_request)
+        response = self.frame_stream.read()

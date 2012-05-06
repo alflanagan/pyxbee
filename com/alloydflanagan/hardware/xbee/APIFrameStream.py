@@ -33,28 +33,37 @@ class APIFrameStream(object):
     Class to buffer and return API Frames from a stream object.
 
     parameters:
-       serial device: String to identify serial device to attach to
-                      ('/dev/ttyUSB0', 'COM1:', etc.)
-       additional arguments: Any accepted by serial.Serial()
+    @param serial_device: serial device to connect to ('/dev/ttyUSB0', 'COM1:'
+                          , etc.)
+    @type serial_device: string
+    @keyword listeners: callbacks to be called when frame is read
+    @type listeners: sequence of functions accepting L{APIFrame} argument
+
+    additional arguments: Any accepted by serial.Serial()
     """
 
     def __init__(self, serial_device, *args, **kwargs):
         """
         Constructor
         """
-        self.conn = serial.Serial(*args, **kwargs)
+        try:
+            self.listeners = kwargs['listeners']
+            """List of registered callbacks. Will be called with an APIFrame as
+            parameter whenever a frame is completely received."""
+            del kwargs['listeners']
+        except KeyError:
+            self.listeners = []
+        self.conn = serial.Serial(serial_device, *args, **kwargs)
         self.conn.baudrate = 9600
         self.conn.bytesize = 8
         self.conn.parity = serial.PARITY_NONE
         self.conn.stopbits = 1
         self.conn.timeout = 5
         self.read_buff = io.BufferedReader(self.conn)
-        self.listeners = ()
-        """List of registered callbacks. Will be called with an APIFrame as
-        parameter whenever a frame is completely received."""
         self._reader_alive = True
         """Flag to signal child thread to terminate."""
         self._start_reader()
+        self.write_buff = io.BufferedWriter(self.conn)
 
     def register_listener(self, listener):
         """Add a callback to the list of listeners. Param listener must be a
@@ -110,6 +119,22 @@ class APIFrameStream(object):
             else:
                 current_frame += b
 
+    def send(self, a_frame):
+        self.write_buff.write(str(a_frame))
+        self.write_buff.flush()
+
+
+gotframe = False
+
+def test_listener(a_frame):
+    print("got frame of {} bytes".format(len(a_frame)))
+    global gotframe
+    gotframe = True
 
 if __name__ == "__main__":
-    pass
+    import time
+    test1 = APIFrameStream('/dev/ttyUSB0', listeners=[test_listener])
+    atid = APIFrame('ATID')
+    test1.send(atid)
+    while not gotframe:
+        time.sleep(1)

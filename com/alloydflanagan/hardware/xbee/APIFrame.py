@@ -44,23 +44,38 @@ class APIFrame(object):
         '''
         self.buff = b'\x7E'
         plength = len(payload)
-        if plength > 256 * 256 - 1:
+        if plength > 0xFF * 0xFF - 1:
             raise PayloadError("payload too large")
-        lsb = plength % 256
+        lsb = plength & 0xFF
         msb = plength // 256
         print("{:#02x} {:02x}".format(msb, lsb))
+        self.buff += chr(msb)
+        self.buff += chr(lsb)
+        assert len(self.buff) == 3
+        chksum = 0
+        for x in payload:
+            chksum + ord(x)
+        chksum = chksum & 0xFF
+        self.buff += payload
+        self.buff += chr(chksum)
+        assert len(self.buff) == 4 + len(payload)
 
+    def get_payload(self):
+        return self.buff[3:-1]
 
 if __name__ == '__main__':
     t1 = b'abcdefgtasfsd'
     test = APIFrame(t1)
+    t1a = test.get_payload()
+    assert t1a == t1
     t2 = t1 * 300
     test2 = APIFrame(t2)
+    t2a = test2.get_payload()
+    assert t2 == t2a
     t3 = t2 * 300
     try:
         test3 = APIFrame(t3)
-        raise Exception("APIFrame accepted payload too large for frame")
+        raise Exception("APIFrame failed to raise payload too large exception")
     except PayloadError:
         print("Expected error received -- payload too large")
     del t3
-

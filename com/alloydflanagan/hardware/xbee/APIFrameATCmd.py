@@ -57,12 +57,16 @@ class APIFrameATCmd(APIFrame):
         super(APIFrameATCmd, self).__init__(payload, *args, **kwargs)
 
 
-def frame_listener(a_frame):
-    assert isinstance(a_frame, APIFrame)
-    print("got frame")
-
-
 if __name__ == "__main__":
+    got_frame = False
+
+    def frame_listener(a_frame):
+        assert isinstance(a_frame, APIFrame)
+        print("got frame")
+
     atid = APIFrameATCmd(b'ID')
     stream = APIFrameStream('/dev/ttyUSB0', listeners=[frame_listener])
     stream.send(atid)
+    import time
+    while not got_frame:
+        time.sleep(1)

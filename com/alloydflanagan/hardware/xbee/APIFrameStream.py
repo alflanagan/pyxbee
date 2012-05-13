@@ -26,6 +26,8 @@ import serial
 import io
 import threading
 from com.alloydflanagan.hardware.xbee.APIFrame import APIFrame
+import sys
+import os
 
 
 class APIFrameStream(object):
@@ -103,6 +105,7 @@ class APIFrameStream(object):
         current_frame = ''
         while self._reader_alive:
             b = self.read_buff.read(1)
+            sys.stdout.write('.')
             #TODO: Really should be completing frame when complete length
             #is read, not when next frame starts. Will require this function
             #to know about length bytes, and check against current length of
@@ -123,18 +126,26 @@ class APIFrameStream(object):
         self.write_buff.write(str(a_frame))
         self.write_buff.flush()
 
+    def close(self):
+        self._stop_reader()
 
-gotframe = False
-
-def test_listener(a_frame):
-    print("got frame of {} bytes".format(len(a_frame)))
-    global gotframe
-    gotframe = True
 
 if __name__ == "__main__":
+    gotframe = False
+
+    def test_listener(a_frame):
+        print("got frame of {} bytes".format(len(a_frame)))
+        global gotframe
+        gotframe = True
+
     import time
-    test1 = APIFrameStream('/dev/ttyUSB0', listeners=[test_listener])
-    atid = APIFrame('ATID')
-    test1.send(atid)
-    while not gotframe:
+    try:
+        test1 = APIFrameStream('/dev/ttyUSB0', listeners=[test_listener])
+        atid = APIFrame('ATID')
+        test1.send(atid)
         time.sleep(1)
+        test1.send(atid)
+        while not gotframe:
+            time.sleep(1)
+    finally:
+        test1.close()

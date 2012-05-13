@@ -74,7 +74,10 @@ class PyxbMainFrame(wx.Frame):
         try:
             self.ports = kwds['ports']
         except KeyError:
-            self.ports = list_ports.comports()
+            try:
+                self.ports = list_ports.comports()
+            except:
+                self.ports = None
 
         self.frame_1_menubar = wx.MenuBar()
         self.SetMenuBar(self.frame_1_menubar)

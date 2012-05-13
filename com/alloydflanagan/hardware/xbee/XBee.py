@@ -3,7 +3,8 @@ from __future__ import division, print_function, unicode_literals
 import threading
 import time
 from com.alloydflanagan.hardware.xbee.APIFrameStream import APIFrameStream
-from com.alloydflanagan.hardware.xbee import APIFrame
+from com.alloydflanagan.hardware.xbee.APIFrame import APIFrame
+from com.alloydflanagan.hardware.xbee.APIFrameATCmd import APIFrameATCmd
 
 #Copyright 2012 A. Lloyd Flanagan
 #This file is part of Pyxb.
@@ -150,6 +151,7 @@ class XBee(object):
         self.write_buff.flush()
 
     def get_ID(self):
-        get_id_request = APIFrame()
-        self.frame_stream.write(get_id_request)
+        get_id_request = APIFrameATCmd('ID')
+        self.frame_stream.send(get_id_request)
         response = self.frame_stream.read()
+        return response

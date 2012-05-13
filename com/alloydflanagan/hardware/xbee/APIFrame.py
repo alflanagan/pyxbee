@@ -48,7 +48,7 @@ class APIFrame(object):
             raise PayloadError("payload too large")
         lsb = plength & 0xFF
         msb = plength // 256
-        print("{:#02x} {:02x}".format(msb, lsb))
+        #print("{:#02x} {:02x}".format(msb, lsb))
         self.buff += chr(msb)
         self.buff += chr(lsb)
         assert len(self.buff) == 3

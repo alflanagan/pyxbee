@@ -1,4 +1,7 @@
-This is a project to develop a python interface to XBee miniature radios.
+This is a project to develop a higher-level python interface to XBee miniature
+radios. There's a nice package called XBee 2 to handle the low-level stuff -
+send a frame, receive a frame, etc. I want to be able to code in terms of a
+more abstract interface and not have to know which AT command does what, etc.
 
 I pronounce it like "pie ex bee", but if you prefer to make it sound like
 "pyxie" no one's stopping you. :)

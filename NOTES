@@ -45,3 +45,13 @@ serial protocol anyway. See new separate project 'usbprobe'.
 
 Updated files to PEP8 formatting standards. I have reservations about the
 80-character line length, but what the hell.
+
+5/26
+
+Getting behind on the log. Have discovered and am using the python/pip module
+XBee 2. It takes care of some of the low-level stuff I was spending time on,
+and seems to working nicely.
+
+Ran into major problems with wxPython 2.8 and the wx.TextCtl. Like "crashes
+the app when attempting to write multiple lines." Switchede to 2.9 and all my
+problems went away.

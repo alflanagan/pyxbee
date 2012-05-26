@@ -2,7 +2,11 @@
 from __future__ import division, print_function, unicode_literals
 import wx
 from serial.tools import list_ports
-from com.alloydflanagan.hardware.xbee.XBee import XBee
+from xbee import ZigBee
+import serial
+import sys
+import time
+import xbee
 
 #Copyright 2012 A. Lloyd Flanagan
 #This file is part of Pyxb.
@@ -62,10 +66,6 @@ class PyxbMainFrame(wx.Frame):
         """
         Application window for pyxb UI.
 
-        @param ports: A list of com ports to use. Defaults to all ports
-        returned by comports().
-        @type ports: Return type of L{serial.tools.list_ports.comports}
-
         """
 
         kwds["style"] = wx.DEFAULT_FRAME_STYLE
@@ -101,14 +101,11 @@ class PyxbMainFrame(wx.Frame):
         sizer_1.Add(self.ButtonsPanel, 0, wx.EXPAND, 0)
         self.SetSizer(sizer_1)
         self.Layout()
+        #TODO: mutex to lock this while it's being filled.
+        self.incoming_frame = None
 
-        self.xb = XBee('/dev/ttyUSB0', listeners=[self.xbee_listener])
-        self.text_ctl.AppendText("XBee unit ID is {:#x}\r".format(
-                                                        self.xb.get_ID()))
-
-    def xbee_listener(self, data):
-        if data:
-            self.text_ctl.AppendText(data)
+        self.ser = None
+        self.xb = None
 
     def build_comm_panel(self):
         self.CommPanel = wx.Panel(self, -1,
@@ -116,9 +113,8 @@ class PyxbMainFrame(wx.Frame):
         self.CommPanel.SetBackgroundColour(wx.Colour(0, 216, 191))
         self.CommPanel.SetForegroundColour(wx.Colour(0, 0, 0))
         self.CommPanel.SetSizeWH(200, 200)
-        self.text_ctl = wx.TextCtrl(self.CommPanel,
-            wx.TE_MULTILINE | wx.TE_READONLY | wx.TE_RICH |
-            wx.TE_DONTWRAP | wx.BORDER_SUNKEN)
+        self.text_ctl = wx.TextCtrl(self.CommPanel, wx.ID_ANY, "",
+                                    style=wx.TE_READONLY | wx.TE_MULTILINE)
         self.comm_szr = wx.BoxSizer(wx.VERTICAL)
         self.comm_szr.Add(self.text_ctl, 1, wx.EXPAND)
         self.CommPanel.SetSizer(self.comm_szr)
@@ -163,16 +159,62 @@ class PyxbMainFrame(wx.Frame):
         self.WidgetsPanel.SetSizer(WidgetsSizer)
 
     def CloseApp(self, event):
-        self.xb.close()
+        print("CloseApp")
+        if self.xb:
+            self.xb.halt()
         self.Close()
         event.Skip()
 
     def Test(self, event):
-        print("testing")
-        self.xb.activate_at_mode()
-        self.xb.send_line("ATID")
-        self.xb.send_line("ATDH")
-        self.xb.send_line("ATDL")
-        ID = self.xb.get_ID()
-        print("Got ID={:#x}".format(ID))
+        print("Test")
+        try:
+            self.ser = serial.Serial('/dev/ttyUSB0',
+                                bytesize=serial.EIGHTBITS,
+                                parity=serial.PARITY_NONE,
+                                stopbits=serial.STOPBITS_ONE,
+                                #timeout=3,
+                                xonxoff=False,
+                                rtscts=False,
+                                baudrate=9600)
+            self.xb = ZigBee(self.ser, callback=self.get_frame, escaped=True)
+            self.xb.at(command="ID")
+            self.xb.at(command="MY")
+            self.xb.at(command="%V")
+        except Exception, e:
+            self.show_exception(e)
+            raise
         event.Skip()
+
+    def read_frame(self):
+        """
+        Parse the most recent incoming frame's data into a hex string.
+        """
+        result = ''
+        if self.incoming_frame:
+            for bytein in self.incoming_frame['parameter']:
+                print('{:02X}'.format(ord(bytein)))
+                result += '{:02X}'.format(ord(bytein))
+        return result
+
+    def get_frame(self, frame):
+        #TODO: lock this to prevent partial data
+        self.incoming_frame = frame
+        self.text_ctl.AppendText("\n" + self.read_frame())
+        assert self.text_ctl.IsMultiLine()
+        print("get_frame() got frame")
+
+    def show_exception(self, e):
+        self.text_ctl.AppendText("\n" + str(sys.exc_info()[1]))
+#        self.xb.activate_at_mode()
+#        self.xb.send_line("ATID")
+#        self.xb.send_line("ATDH")
+#        self.xb.send_line("ATDL")
+#        ID = self.xb.get_ID()
+#        print("Got ID={:#x}".format(ID))
+#        event.Skip()
+
+if __name__ == '__main__':
+    import app
+    import os
+    os.environ['PYUSB_DEBUG_LEVEL'] = 'debug'
+    app.doApp()

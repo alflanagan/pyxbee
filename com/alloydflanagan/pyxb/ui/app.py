@@ -17,18 +17,27 @@ from __future__ import division, print_function, unicode_literals
 
 #You should have received a copy of the GNU General Public License
 #along with Pyxb.  If not, see <http://www.gnu.org/licenses/>.
-
-from PyxbMainFrame import PyxbMainFrame
 import wx
+from PyxbMainFrame import PyxbMainFrame
 
 
-class PyxbApp(wx.PySimpleApp):
+class PyxbApp(wx.App):
 
-    def __init__(self, *args, **kwargs):
-        super(PyxbApp, self).__init__(*args, **kwargs)
-        wx.InitAllImageHandlers()
+    def checkWxVersion(self):
+        ver = wx.version()
+        major = int(ver[0], 10)
+        assert major >= 2
+        firstper = ver.find('.')
+        if firstper > -1:
+            minor = int(ver[firstper + 1], 10)
+            assert minor >= 3
+
+    def OnInit(self):
+        self.checkWxVersion()
         self.top_frame = PyxbMainFrame(None, -1, "")
+        #TODO: catch exception,log, return False
         self.SetTopWindow(self.top_frame)
+        return True
 
     def Show(self):
         self.top_frame.Show()
@@ -42,5 +51,4 @@ def doApp():
 if __name__ == "__main__":
     import os
     os.environ['PYUSB_DEBUG_LEVEL'] = 'debug'
-    #xs = XBees()
     doApp()

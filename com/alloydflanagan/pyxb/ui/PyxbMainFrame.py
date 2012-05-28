@@ -6,7 +6,6 @@ from xbee import ZigBee
 import serial
 import sys
 import time
-import xbee
 
 #Copyright 2012 A. Lloyd Flanagan
 #This file is part of Pyxb.
@@ -79,9 +78,14 @@ class PyxbMainFrame(wx.Frame):
             except:
                 self.ports = None
 
+        self.verified_ports = []
+        self.check_ports()
+
+        #menu bar
         self.frame_1_menubar = wx.MenuBar()
         self.SetMenuBar(self.frame_1_menubar)
 
+        #status bar
         self.frame_1_statusbar = self.CreateStatusBar(1, 0)
         self.frame_1_statusbar.SetStatusWidths([-1])
         frame_1_statusbar_fields = ["frame_1_statusbar"]
@@ -89,6 +93,7 @@ class PyxbMainFrame(wx.Frame):
             self.frame_1_statusbar.SetStatusText(frame_1_statusbar_fields[i],
                                                  i)
 
+        #main panels
         self.SetSize((500, 600))
         self.build_widget_panel()
         self.build_sep_panel()
@@ -101,11 +106,30 @@ class PyxbMainFrame(wx.Frame):
         sizer_1.Add(self.ButtonsPanel, 0, wx.EXPAND, 0)
         self.SetSizer(sizer_1)
         self.Layout()
+
         #TODO: mutex to lock this while it's being filled.
         self.incoming_frame = None
 
         self.ser = None
         self.xb = None
+
+    def check_ports(self):
+        """
+        for each serial port found, ask "are you an xbee". (How do I do that
+        safely? Preferably I would want to not send any data to port. Return
+        ports for which answer is yes.
+        """
+        for port in self.ports:
+            #print(port)
+            self.verified_ports.append(port[0])
+
+    def build_data_panel(self):
+        self.DataPanel = wx.Panel(self, wx.ID_ANY)
+        self.DataPanel.SetMinSize((-1, 200))
+        self.data_panel_sizer = wx.BoxSizer(wx.VERTICAL)
+        lbl = wx.StaticText(self.DataPanel, wx.ID_ANY, "Device Info")
+        self.data_panel_sizer.Add(lbl, 0, wx.EXPAND | wx.ALL, border=10)
+        self.DataPanel.SetSizer(self.data_panel_sizer)
 
     def build_comm_panel(self):
         self.CommPanel = wx.Panel(self, -1,
@@ -151,22 +175,29 @@ class PyxbMainFrame(wx.Frame):
                                      style=wx.LB_SINGLE | wx.LB_NEEDED_SB)
         self.list_box_1.SetMinSize((145, 166))
         self.list_box_szr = wx.BoxSizer(wx.VERTICAL)
-        self.list_box_szr.Add(self.list_radio_label)
-        self.list_box_szr.Add(self.list_box_1)
-        WidgetsSizer = wx.FlexGridSizer(2, 3, 0, 0)
-        WidgetsSizer.Add(self.list_box_szr, 0,
-                         wx.ALL | wx.ALIGN_CENTER_HORIZONTAL, 4)
-        self.WidgetsPanel.SetSizer(WidgetsSizer)
+        self.list_box_szr.Add(self.list_radio_label, 0, wx.ALL, border=10)
+        self.list_box_szr.Add(self.list_box_1, 1, wx.RIGHT | wx.LEFT | wx.BOTTOM, border=5)
+        self.build_data_panel()
+        self.top_widgets_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.top_widgets_sizer.Add(self.list_box_szr)
+        self.top_widgets_sizer.Add(self.DataPanel, wx.EXPAND)
+        self.WidgetsPanel.SetSizer(self.top_widgets_sizer)
+        if self.verified_ports:
+            for port in self.verified_ports:
+                self.list_box_1.AppendAndEnsureVisible(port)
 
     def CloseApp(self, event):
-        print("CloseApp")
         if self.xb:
             self.xb.halt()
+        try:
+            self.ser.close()
+        except:
+            pass
         self.Close()
+        print("CloseApp")
         event.Skip()
 
     def Test(self, event):
-        print("Test")
         try:
             self.ser = serial.Serial('/dev/ttyUSB0',
                                 bytesize=serial.EIGHTBITS,
@@ -192,7 +223,6 @@ class PyxbMainFrame(wx.Frame):
         result = ''
         if self.incoming_frame:
             for bytein in self.incoming_frame['parameter']:
-                print('{:02X}'.format(ord(bytein)))
                 result += '{:02X}'.format(ord(bytein))
         return result
 
@@ -201,20 +231,14 @@ class PyxbMainFrame(wx.Frame):
         self.incoming_frame = frame
         self.text_ctl.AppendText("\n" + self.read_frame())
         assert self.text_ctl.IsMultiLine()
-        print("get_frame() got frame")
+        #print("get_frame() got frame")
 
     def show_exception(self, e):
         self.text_ctl.AppendText("\n" + str(sys.exc_info()[1]))
-#        self.xb.activate_at_mode()
-#        self.xb.send_line("ATID")
-#        self.xb.send_line("ATDH")
-#        self.xb.send_line("ATDL")
-#        ID = self.xb.get_ID()
-#        print("Got ID={:#x}".format(ID))
-#        event.Skip()
 
 if __name__ == '__main__':
     import app
     import os
+    assert wx.version().startswith('2.9')
     os.environ['PYUSB_DEBUG_LEVEL'] = 'debug'
     app.doApp()

@@ -5,7 +5,6 @@ from serial.tools import list_ports
 from xbee import ZigBee
 import serial
 import sys
-import time
 
 #Copyright 2012 A. Lloyd Flanagan
 #This file is part of Pyxb.
@@ -22,6 +21,13 @@ import time
 
 #You should have received a copy of the GNU General Public License
 #along with Pyxb.  If not, see <http://www.gnu.org/licenses/>.
+
+
+def hex_str(data):
+    result = ''
+    for bytein in data:
+            result += '{:02X}'.format(ord(bytein))
+    return result
 
 
 class MyButton(wx.Button):
@@ -60,6 +66,115 @@ class MyButton(wx.Button):
             self.Parent.Bind(wx.EVT_BUTTON, bind_to, self)
 
 
+class NotebookPage1Panel(wx.Panel):
+
+    def __init__(self, parent, *args, **kwargs):
+        super(NotebookPage1Panel, self).__init__(parent, *args, **kwargs)
+        labels = ["PAN ID", "Serial", "Destination", "Address",
+                  "Children Avail", "Max Payload",
+                  "Encryption?", "Version", ]
+        panel_sizer = wx.FlexGridSizer(rows=len(labels), cols=2, vgap=2,
+                                       hgap=5)
+        panel_sizer.SetFlexibleDirection(wx.HORIZONTAL)
+        self.vals = []
+        for lbl in labels:
+            txt = wx.StaticText(self, label=lbl, style=wx.ALIGN_RIGHT)
+            val = wx.TextCtrl(self)
+            val.SetMinSize((175, -1))
+            self.vals.append(val)
+            panel_sizer.Add(txt)
+            panel_sizer.Add(val)
+        self.SetSizer(panel_sizer)
+
+    @property
+    def xbee(self):
+        """XBee object which provides data to fill controls."""
+        return self.xb
+
+    @xbee.setter
+    def set_xbee(self, xbee):
+        self.xb = xbee
+
+    def set_value(self, field, value):
+        """
+        Sets the value of a given field.
+        field: integer index to vals array.
+        value: value to display.
+        """
+        self.vals[field].SetValue(str(value))
+
+    def populate(self):
+        self.xb.at(command="ID")
+        resp = self.xb.wait_read_frame()
+        print(hex_str(resp['parameter']))
+        self.set_value(0, hex_str(resp['parameter']))
+        self.xb.at(command="MY")
+        resp = self.xb.wait_read_frame()
+        print(hex_str(resp['parameter']))
+        self.xb.at(command="%V")
+        resp = self.xb.wait_read_frame()
+        print(hex_str(resp['parameter']))
+
+
+class DevWidgetsPanel(wx.Panel):
+
+    def __init__(self, parent, *args, **kwargs):
+        super(DevWidgetsPanel, self).__init__(parent, *args, **kwargs)
+        self.SetBackgroundColour((216, 216, 191))
+        self.list_radio_label = wx.StaticText(self, -1,
+                                       "Detected Devices",
+                                       style=wx.ALIGN_CENTRE)
+        self.list_radio_label.SetBackgroundColour(wx.Colour(216, 216, 191))
+        self.list_box_1 = wx.ListBox(self, choices=[],
+                                     style=wx.LB_SINGLE | wx.LB_NEEDED_SB)
+        self.list_box_1.SetMinSize((145, 166))
+        self.list_box_szr = wx.BoxSizer(wx.VERTICAL)
+        self.list_box_szr.Add(self.list_radio_label, 0, wx.ALL, border=10)
+        self.list_box_szr.Add(self.list_box_1,
+                              flag=wx.RIGHT | wx.LEFT | wx.BOTTOM,
+                              border=5)
+        self.vals = []
+        """list of data value display controls"""
+        self.build_data_panel()
+        self.top_widgets_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.top_widgets_sizer.Add(self.list_box_szr)
+        self.top_widgets_sizer.Add(self.DataPanel, wx.EXPAND)
+        self.SetSizer(self.top_widgets_sizer)
+
+    def build_data_panel(self):
+        #data_panel = Panel {
+        #  BoxSizer VERTICAL
+        #  StaticText "Device Info"
+        #  NoteBook {
+        #    page {
+        #      NotebookPage1Panel
+        #}}}
+        self.DataPanel = wx.Panel(self, wx.ID_ANY)
+        self.DataPanel.SetMinSize((-1, 250))
+
+        data_panel_sizer = wx.BoxSizer(wx.VERTICAL)
+        lbl = wx.StaticText(self.DataPanel, wx.ID_ANY, "Device Info")
+        data_panel_sizer.Add(lbl, 0, wx.EXPAND | wx.ALL, border=10)
+
+        self.notebook = wx.Notebook(self.DataPanel)
+        self.page1_panel = NotebookPage1Panel(self.notebook)
+        self.notebook.AddPage(self.page1_panel, "Basics")
+        data_panel_sizer.Add(self.notebook,
+                                  flag=wx.EXPAND | wx.ALL, border=5)
+        self.DataPanel.SetSizer(data_panel_sizer)
+
+    def on_select_page1(self, event):
+        self.page1_panel.populate_from(self.xb)
+
+    def fill_ports(self, port_list):
+        for port in port_list:
+            self.list_box_1.AppendAndEnsureVisible(port)
+
+    def set_value(self, index, data):
+
+        self.vals[index].SetValue(data)
+
+
 class PyxbMainFrame(wx.Frame):
     def __init__(self, *args, **kwds):
         """
@@ -95,12 +210,14 @@ class PyxbMainFrame(wx.Frame):
 
         #main panels
         self.SetSize((500, 600))
-        self.build_widget_panel()
+        self.widgets_panel = DevWidgetsPanel(self)
+        if self.verified_ports:
+            self.widgets_panel.fill_ports(self.verified_ports)
         self.build_sep_panel()
         self.build_comm_panel()
         self.build_button_panel()
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
-        sizer_1.Add(self.WidgetsPanel, 0, wx.EXPAND, 0)
+        sizer_1.Add(self.widgets_panel, 0, wx.EXPAND, 0)
         sizer_1.Add(self.SepPanel, 0, wx.ALL | wx.EXPAND, 0)
         sizer_1.Add(self.CommPanel, 1, wx.EXPAND, 0)
         sizer_1.Add(self.ButtonsPanel, 0, wx.EXPAND, 0)
@@ -120,16 +237,7 @@ class PyxbMainFrame(wx.Frame):
         ports for which answer is yes.
         """
         for port in self.ports:
-            #print(port)
             self.verified_ports.append(port[0])
-
-    def build_data_panel(self):
-        self.DataPanel = wx.Panel(self, wx.ID_ANY)
-        self.DataPanel.SetMinSize((-1, 200))
-        self.data_panel_sizer = wx.BoxSizer(wx.VERTICAL)
-        lbl = wx.StaticText(self.DataPanel, wx.ID_ANY, "Device Info")
-        self.data_panel_sizer.Add(lbl, 0, wx.EXPAND | wx.ALL, border=10)
-        self.DataPanel.SetSizer(self.data_panel_sizer)
 
     def build_comm_panel(self):
         self.CommPanel = wx.Panel(self, -1,
@@ -161,32 +269,10 @@ class PyxbMainFrame(wx.Frame):
         self.TestButton = MyButton(self.ButtonsPanel, -1, "Test",
                                    addto=sizer_2, bind_to=self.Test)
         self.CloseButton = MyButton(self.ButtonsPanel, -1, "Close",
-                                    addto=sizer_2, bind_to=self.CloseApp)
+                                    addto=sizer_2, bind_to=self.close_app)
         self.ButtonsPanel.SetSizer(sizer_2)
 
-    def build_widget_panel(self):
-        self.WidgetsPanel = wx.Panel(self, -1)
-        self.WidgetsPanel.SetBackgroundColour(wx.Colour(216, 216, 191))
-        self.list_radio_label = wx.StaticText(self.WidgetsPanel, -1,
-                                       "Detected Devices",
-                                       style=wx.ALIGN_CENTRE)
-        self.list_radio_label.SetBackgroundColour(wx.Colour(216, 216, 191))
-        self.list_box_1 = wx.ListBox(self.WidgetsPanel, -1, choices=[],
-                                     style=wx.LB_SINGLE | wx.LB_NEEDED_SB)
-        self.list_box_1.SetMinSize((145, 166))
-        self.list_box_szr = wx.BoxSizer(wx.VERTICAL)
-        self.list_box_szr.Add(self.list_radio_label, 0, wx.ALL, border=10)
-        self.list_box_szr.Add(self.list_box_1, 1, wx.RIGHT | wx.LEFT | wx.BOTTOM, border=5)
-        self.build_data_panel()
-        self.top_widgets_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.top_widgets_sizer.Add(self.list_box_szr)
-        self.top_widgets_sizer.Add(self.DataPanel, wx.EXPAND)
-        self.WidgetsPanel.SetSizer(self.top_widgets_sizer)
-        if self.verified_ports:
-            for port in self.verified_ports:
-                self.list_box_1.AppendAndEnsureVisible(port)
-
-    def CloseApp(self, event):
+    def close_app(self, event):
         if self.xb:
             self.xb.halt()
         try:
@@ -194,27 +280,46 @@ class PyxbMainFrame(wx.Frame):
         except:
             pass
         self.Close()
-        print("CloseApp")
+        print("close_app")
         event.Skip()
 
-    def Test(self, event):
+    def read_data(self, device):
         try:
-            self.ser = serial.Serial('/dev/ttyUSB0',
-                                bytesize=serial.EIGHTBITS,
-                                parity=serial.PARITY_NONE,
-                                stopbits=serial.STOPBITS_ONE,
-                                #timeout=3,
-                                xonxoff=False,
-                                rtscts=False,
-                                baudrate=9600)
-            self.xb = ZigBee(self.ser, callback=self.get_frame, escaped=True)
+            self.ser = serial.Serial(device,
+                                     bytesize=serial.EIGHTBITS,
+                                     parity=serial.PARITY_NONE,
+                                     stopbits=serial.STOPBITS_ONE,
+                                     #timeout=3,
+                                     xonxoff=False,
+                                     rtscts=False,
+                                     baudrate=9600)
+            self.xb = ZigBee(self.ser, escaped=True)
             self.xb.at(command="ID")
+            resp = self.xb.wait_read_frame()
+            print(self.hex_str(resp['parameter']))
+            self.widgets_panel.set_value(0, self.hex_str(resp['parameter']))
             self.xb.at(command="MY")
+            resp = self.xb.wait_read_frame()
+            print(self.hex_str(resp['parameter']))
             self.xb.at(command="%V")
+            resp = self.xb.wait_read_frame()
+            print(self.hex_str(resp['parameter']))
         except Exception, e:
             self.show_exception(e)
             raise
-        event.Skip()
+
+    def Test(self, event):
+        self.ser = serial.Serial('/dev/ttyUSB0',
+                                 bytesize=serial.EIGHTBITS,
+                                 parity=serial.PARITY_NONE,
+                                 stopbits=serial.STOPBITS_ONE,
+                                 #timeout=3,
+                                 xonxoff=False,
+                                 rtscts=False,
+                                 baudrate=9600)
+        self.xb = ZigBee(self.ser, escaped=True)
+        self.widgets_panel.page1_panel.xb = self.xb
+        self.widgets_panel.page1_panel.populate()
 
     def read_frame(self):
         """

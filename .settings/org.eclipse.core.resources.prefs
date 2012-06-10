@@ -1,4 +1,6 @@
 eclipse.preferences.version=1
+encoding//com/alloydflanagan/hardware/errors.py=utf-8
+encoding//com/alloydflanagan/hardware/xbee/XBeeSettings.py=utf-8
 encoding//com/alloydflanagan/pyxb/ui/PyxbMainFrame.py=utf-8
 encoding//com/alloydflanagan/pyxb/ui/ShowArgs.py=utf-8
 encoding//com/alloydflanagan/pyxb/ui/app.py=utf-8

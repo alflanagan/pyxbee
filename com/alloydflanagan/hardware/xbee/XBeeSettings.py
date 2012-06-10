@@ -125,3 +125,18 @@ class XBeeSettings(object):
         """
         super(XBeeSettings, self).__init__()
         self.xb = xbee_device
+        self.id = self._do_at("ID")
+
+    def _do_at(self, cmd):
+        """Send cmd as AT command to device.
+
+        @return: response object
+        """
+        self.xb.at(command=cmd)
+        return self.xb.wait_read_frame()
+
+    @property
+    def id(self):
+        return self.id
+
+    #TODO: define id.setter which sends setting to xbee and writes it

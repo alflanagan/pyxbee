@@ -5,6 +5,7 @@ from serial.tools import list_ports
 from xbee import ZigBee
 import serial
 import sys
+from com.alloydflanagan.pyxb.ui.SettingsNotebook import SettingsNotebook
 
 #Copyright 2012 A. Lloyd Flanagan
 #This file is part of Pyxb.
@@ -66,113 +67,50 @@ class MyButton(wx.Button):
             self.Parent.Bind(wx.EVT_BUTTON, bind_to, self)
 
 
-class NotebookPage1Panel(wx.Panel):
-
-    def __init__(self, parent, *args, **kwargs):
-        super(NotebookPage1Panel, self).__init__(parent, *args, **kwargs)
-        labels = ["PAN ID", "Serial", "Destination", "Address",
-                  "Children Avail", "Max Payload",
-                  "Encryption?", "Version", ]
-        panel_sizer = wx.FlexGridSizer(rows=len(labels), cols=2, vgap=2,
-                                       hgap=5)
-        panel_sizer.SetFlexibleDirection(wx.HORIZONTAL)
-        self.vals = []
-        for lbl in labels:
-            txt = wx.StaticText(self, label=lbl, style=wx.ALIGN_RIGHT)
-            val = wx.TextCtrl(self)
-            val.SetMinSize((175, -1))
-            self.vals.append(val)
-            panel_sizer.Add(txt)
-            panel_sizer.Add(val)
-        self.SetSizer(panel_sizer)
-
-    @property
-    def xbee(self):
-        """XBee object which provides data to fill controls."""
-        return self.xb
-
-    @xbee.setter
-    def set_xbee(self, xbee):
-        self.xb = xbee
-
-    def set_value(self, field, value):
-        """
-        Sets the value of a given field.
-        field: integer index to vals array.
-        value: value to display.
-        """
-        self.vals[field].SetValue(str(value))
-
-    def populate(self):
-        self.xb.at(command="ID")
-        resp = self.xb.wait_read_frame()
-        print(hex_str(resp['parameter']))
-        self.set_value(0, hex_str(resp['parameter']))
-        self.xb.at(command="MY")
-        resp = self.xb.wait_read_frame()
-        print(hex_str(resp['parameter']))
-        self.xb.at(command="%V")
-        resp = self.xb.wait_read_frame()
-        print(hex_str(resp['parameter']))
-
-
 class DevWidgetsPanel(wx.Panel):
 
     def __init__(self, parent, *args, **kwargs):
         super(DevWidgetsPanel, self).__init__(parent, *args, **kwargs)
         self.SetBackgroundColour((216, 216, 191))
-        self.list_radio_label = wx.StaticText(self, -1,
-                                       "Detected Devices",
-                                       style=wx.ALIGN_CENTRE)
-        self.list_radio_label.SetBackgroundColour(wx.Colour(216, 216, 191))
-        self.list_box_1 = wx.ListBox(self, choices=[],
-                                     style=wx.LB_SINGLE | wx.LB_NEEDED_SB)
-        self.list_box_1.SetMinSize((145, 166))
-        self.list_box_szr = wx.BoxSizer(wx.VERTICAL)
-        self.list_box_szr.Add(self.list_radio_label, 0, wx.ALL, border=10)
-        self.list_box_szr.Add(self.list_box_1,
-                              flag=wx.RIGHT | wx.LEFT | wx.BOTTOM,
-                              border=5)
-        self.vals = []
-        """list of data value display controls"""
-        self.build_data_panel()
-        self.top_widgets_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.top_widgets_sizer.Add(self.list_box_szr)
-        self.top_widgets_sizer.Add(self.DataPanel, wx.EXPAND)
-        self.SetSizer(self.top_widgets_sizer)
-
-    def build_data_panel(self):
-        #data_panel = Panel {
-        #  BoxSizer VERTICAL
-        #  StaticText "Device Info"
-        #  NoteBook {
-        #    page {
-        #      NotebookPage1Panel
-        #}}}
-        self.DataPanel = wx.Panel(self, wx.ID_ANY)
-        self.DataPanel.SetMinSize((-1, 250))
-
-        data_panel_sizer = wx.BoxSizer(wx.VERTICAL)
-        lbl = wx.StaticText(self.DataPanel, wx.ID_ANY, "Device Info")
-        data_panel_sizer.Add(lbl, 0, wx.EXPAND | wx.ALL, border=10)
-
-        self.notebook = wx.Notebook(self.DataPanel)
-        self.page1_panel = NotebookPage1Panel(self.notebook)
-        self.notebook.AddPage(self.page1_panel, "Basics")
-        data_panel_sizer.Add(self.notebook,
-                                  flag=wx.EXPAND | wx.ALL, border=5)
-        self.DataPanel.SetSizer(data_panel_sizer)
+        self.SetMinSize((200, 200))
+#        self.list_panel = wx.Panel(self, wx.ID_ANY)
+#        self.list_radio_label = wx.StaticText(self, -1,
+#                                       "Detected Devices",
+#                                       style=wx.ALIGN_CENTRE)
+#        self.list_radio_label.SetBackgroundColour(wx.Colour(216, 216, 191))
+#        self.list_box_1 = wx.ListBox(self, choices=[],
+#                                     style=wx.LB_SINGLE | wx.LB_NEEDED_SB)
+#        self.list_box_1.SetMinSize((145, 166))
+#        self.list_box_szr = wx.BoxSizer(wx.VERTICAL)
+#        self.list_box_szr.Add(self.list_radio_label, 0, wx.ALL, border=10)
+#        self.list_box_szr.Add(self.list_box_1,
+#                              flag=wx.RIGHT | wx.LEFT | wx.BOTTOM,
+#                              border=5)
+#        self.list_panel.SetSizer(self.list_box_szr)
+#        self.DataPanel = wx.Panel(self, wx.ID_ANY)
+#        self.DataPanel.SetMinSize((-1, 250))
+#
+#        data_panel_sizer = wx.BoxSizer(wx.VERTICAL)
+#        lbl = wx.StaticText(self.DataPanel, wx.ID_ANY, "Device Info")
+#        data_panel_sizer.Add(lbl, 0, wx.EXPAND | wx.ALL, border=10)
+#
+#        #self.notebook = SettingsNotebook(self)
+#        self.notebook = wx.Notebook(self)
+#        data_panel_sizer.Add(self.notebook, 1, wx.EXPAND | wx.ALL)
+#        self.DataPanel.SetSizer(data_panel_sizer)
+#        self.top_widgets_sizer = wx.BoxSizer(wx.HORIZONTAL)
+#        self.top_widgets_sizer.Add(self.list_panel)
+#        self.top_widgets_sizer.Add(self.DataPanel, wx.EXPAND)
+#        self.SetSizer(self.top_widgets_sizer)
 
     def on_select_page1(self, event):
-        self.page1_panel.populate_from(self.xb)
+        #self.page1_panel.populate_from(self.xb)
+        pass
 
     def fill_ports(self, port_list):
-        for port in port_list:
-            self.list_box_1.AppendAndEnsureVisible(port)
-
-    def set_value(self, index, data):
-
-        self.vals[index].SetValue(data)
+        pass
+        #for port in port_list:
+        #    self.list_box_1.AppendAndEnsureVisible(port)
 
 
 class PyxbMainFrame(wx.Frame):
@@ -183,7 +121,7 @@ class PyxbMainFrame(wx.Frame):
         """
 
         kwds["style"] = wx.DEFAULT_FRAME_STYLE
-        wx.Frame.__init__(self, *args, **kwds)
+        super(PyxbMainFrame, self).__init__(*args, **kwds)
 
         try:
             self.ports = kwds['ports']

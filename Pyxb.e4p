@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE Project SYSTEM "Project-4.6.dtd">
+<!-- eric4 project file for project Pyxb -->
+<!-- Saved: 2012-06-09, 19:35:27 -->
+<!-- Copyright (C) 2012 ,  -->
+<Project version="4.6">
+  <Language>en</Language>
+  <ProgLanguage mixed="0">Python</ProgLanguage>
+  <ProjectType>wxPython</ProjectType>
+  <Description></Description>
+  <Version>0.1</Version>
+  <Author></Author>
+  <Email></Email>
+  <Sources>
+    <Source>com/alloydflanagan/pyxb/ui/app.py</Source>
+    <Source>com/alloydflanagan/hardware/xbee/APIFrameStream.py</Source>
+    <Source>com/alloydflanagan/hardware/xbee/APIFrameATCmd.py</Source>
+    <Source>com/alloydflanagan/hardware/xbee/XBeeSettings.py</Source>
+    <Source>com/alloydflanagan/hardware/xbee/APIFrame.py</Source>
+    <Source>com/alloydflanagan/hardware/xbee/XBees.py</Source>
+    <Source>com/alloydflanagan/hardware/xbee/__init__.py</Source>
+    <Source>com/alloydflanagan/hardware/errors.py</Source>
+    <Source>com/alloydflanagan/hardware/__init__.py</Source>
+    <Source>com/alloydflanagan/pyxb/ui/ShowArgs.py</Source>
+    <Source>com/alloydflanagan/pyxb/ui/PyxbMainFrame.py</Source>
+    <Source>com/alloydflanagan/pyxb/ui/__init__.py</Source>
+    <Source>com/alloydflanagan/pyxb/__init__.py</Source>
+    <Source>com/alloydflanagan/usbprobe/USBProbe.py</Source>
+    <Source>com/alloydflanagan/__init__.py</Source>
+    <Source>com/__init__.py</Source>
+    <Source>__init__.py</Source>
+  </Sources>
+  <Forms>
+  </Forms>
+  <Translations>
+  </Translations>
+  <Resources>
+  </Resources>
+  <Interfaces>
+  </Interfaces>
+  <Others>
+  </Others>
+  <MainScript>com/alloydflanagan/pyxb/ui/app.py</MainScript>
+  <Vcs>
+    <VcsType>None</VcsType>
+  </Vcs>
+  <FiletypeAssociations>
+    <FiletypeAssociation pattern="*.pyw" type="SOURCES" />
+    <FiletypeAssociation pattern="*.idl" type="INTERFACES" />
+    <FiletypeAssociation pattern="*.py" type="SOURCES" />
+    <FiletypeAssociation pattern="*.ptl" type="SOURCES" />
+  </FiletypeAssociations>
+</Project>

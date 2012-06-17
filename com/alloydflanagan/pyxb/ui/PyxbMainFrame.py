@@ -5,7 +5,7 @@ from serial.tools import list_ports
 from xbee import ZigBee
 import serial
 import sys
-from com.alloydflanagan.pyxb.ui.SettingsNotebook import SettingsNotebook
+from SettingsNotebook import SettingsNotebook
 
 #Copyright 2012 A. Lloyd Flanagan
 #This file is part of Pyxb.
@@ -35,8 +35,19 @@ class MyButton(wx.Button):
     """
     Convenience class to create buttons with a set of common attributes.
 
-    @param addto: keyword argument. If present, button will be added to
-    to the sizer
+    @param parent: The parent window.
+    @type parent: L{wx.Window}
+    @param id: An identifier for the panel. wxID_ANY is taken to mean a default.
+    @type id: int
+    @param pos: The panel position. The value wxDefaultPosition indicates a default position, chosen by either the windowing system or wxWidgets, depending on platform.
+    @type pos: wx.Position, or a two-tuple.
+    @param size: The panel size. The value wxDefaultSize indicates a default size, chosen by either the windowing system or wxWidgets, depending on platform.
+    @type size: wx.Size, or a two-tuple.
+    @param style: The window style. See wxPanel.
+    @type style: wx.Style, or int
+    @param name: Window name.
+    @type name: string
+    @param addto: keyword argument. If present, button will be added to the sizer
     @type addto: L{wx.Sizer}
     @param bindto: keyword argument. If present, button event will be bound
     to this value.
@@ -67,41 +78,54 @@ class MyButton(wx.Button):
             self.Parent.Bind(wx.EVT_BUTTON, bind_to, self)
 
 
+class DataPanel(wx.Panel):
+    def __init__(self, *args, **kwargs):
+        super(DataPanel, self).__init__(*args, **kwargs)
+        self.SetMinSize((-1, 250))
+
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        lbl = wx.StaticText(self, wx.ID_ANY, "Device Info")
+        sizer.Add(lbl, 0, wx.EXPAND | wx.ALL, border=10)
+
+        self.notebook = SettingsNotebook(self)
+        sizer.Add(self.notebook, 1)
+        self.SetSizer(sizer)
+
+
+class ListBoxPanel(wx.Panel):
+    def __init__(self, *args, **kwargs):
+        super(ListBoxPanel, self).__init__(*args, **kwargs)
+        self.list_radio_label = wx.StaticText(self, -1,
+                                       "Detected Devices",
+                                       style=wx.ALIGN_CENTRE)
+        self.list_radio_label.SetBackgroundColour(wx.Colour(216, 216, 191))
+        self.list_box_1 = wx.ListBox(self, choices=[],
+                                     style=wx.LB_SINGLE | wx.LB_NEEDED_SB)
+        self.list_box_1.SetMinSize((145, 166))
+        self.list_box_szr = wx.BoxSizer(wx.VERTICAL)
+        self.list_box_szr.Add(self.list_radio_label, 0, wx.ALL, border=10)
+        self.list_box_szr.Add(self.list_box_1,
+                              flag=wx.RIGHT | wx.LEFT | wx.BOTTOM,
+                              border=5)
+        self.SetSizer(self.list_box_szr)
+
+
 class DevWidgetsPanel(wx.Panel):
 
     def __init__(self, parent, *args, **kwargs):
         super(DevWidgetsPanel, self).__init__(parent, *args, **kwargs)
+        self.HEIGHT = 200
+        self.WIDTH = 300
         self.SetBackgroundColour((216, 216, 191))
-        self.SetMinSize((200, 200))
-#        self.list_panel = wx.Panel(self, wx.ID_ANY)
-#        self.list_radio_label = wx.StaticText(self, -1,
-#                                       "Detected Devices",
-#                                       style=wx.ALIGN_CENTRE)
-#        self.list_radio_label.SetBackgroundColour(wx.Colour(216, 216, 191))
-#        self.list_box_1 = wx.ListBox(self, choices=[],
-#                                     style=wx.LB_SINGLE | wx.LB_NEEDED_SB)
-#        self.list_box_1.SetMinSize((145, 166))
-#        self.list_box_szr = wx.BoxSizer(wx.VERTICAL)
-#        self.list_box_szr.Add(self.list_radio_label, 0, wx.ALL, border=10)
-#        self.list_box_szr.Add(self.list_box_1,
-#                              flag=wx.RIGHT | wx.LEFT | wx.BOTTOM,
-#                              border=5)
-#        self.list_panel.SetSizer(self.list_box_szr)
-#        self.DataPanel = wx.Panel(self, wx.ID_ANY)
-#        self.DataPanel.SetMinSize((-1, 250))
-#
-#        data_panel_sizer = wx.BoxSizer(wx.VERTICAL)
-#        lbl = wx.StaticText(self.DataPanel, wx.ID_ANY, "Device Info")
-#        data_panel_sizer.Add(lbl, 0, wx.EXPAND | wx.ALL, border=10)
-#
-#        #self.notebook = SettingsNotebook(self)
-#        self.notebook = wx.Notebook(self)
-#        data_panel_sizer.Add(self.notebook, 1, wx.EXPAND | wx.ALL)
-#        self.DataPanel.SetSizer(data_panel_sizer)
-#        self.top_widgets_sizer = wx.BoxSizer(wx.HORIZONTAL)
-#        self.top_widgets_sizer.Add(self.list_panel)
-#        self.top_widgets_sizer.Add(self.DataPanel, wx.EXPAND)
-#        self.SetSizer(self.top_widgets_sizer)
+        self.SetMinSize((self.HEIGHT, self.WIDTH))
+        self.list_panel = ListBoxPanel(self, wx.ID_ANY)
+        self.data_panel = DataPanel(self, wx.ID_ANY)
+        self.data_panel.SetMinSize((self.HEIGHT * 0.7, self.WIDTH))
+        self.top_widgets_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.top_widgets_sizer.Add(self.list_panel)
+        self.top_widgets_sizer.Add(self.data_panel, 1)
+        self.SetSizer(self.top_widgets_sizer)
+        self.top_widgets_sizer.Fit(self)
 
     def on_select_page1(self, event):
         #self.page1_panel.populate_from(self.xb)
@@ -118,11 +142,40 @@ class PyxbMainFrame(wx.Frame):
         """
         Application window for pyxb UI.
 
+        Parameters can be supplied positionally or as keywords
+        @param parent: The window parent. This may be NULL. If it is non-NULL,
+            the frame will always be displayed on top of the parent window on
+            Windows.
+        @type parent: window
+        @param id: The window identifier. It may take a value of -1 to indicate
+            a default value.
+        @type id: int
+        @param title: The caption to be displayed on the frame's title bar.
+        @type title: string
+        @param pos: The window position. The value wxDefaultPosition indicates
+            a default position, chosen by either the windowing system or
+            wxWidgets, depending on platform.
+        @type pos: wx.Point, or tuple of two ints
+        @param size: The window size. The value wxDefaultSize indicates a
+            default size, chosen by either the windowing system or wxWidgets,
+            depending on platform.
+        @type size: wx.Size, or tuple of two ints
+        @param style: The window style. See wxFrame class description.
+        @type style: int
+        @param name: The name of the window. This parameter is used to
+            associate a name with the item, allowing the application
+            user to set Motif resource values for individual windows.
+        @type name: string
+
         """
 
+        defaults = self.GetClassDefaultAttributes()
+        print(defaults)
         kwds["style"] = wx.DEFAULT_FRAME_STYLE
         super(PyxbMainFrame, self).__init__(*args, **kwds)
 
+        self.HEIGHT = 500
+        self.WIDTH = 600
         try:
             self.ports = kwds['ports']
         except KeyError:
@@ -147,22 +200,23 @@ class PyxbMainFrame(wx.Frame):
                                                  i)
 
         #main panels
-        self.SetSize((500, 600))
+        self.SetSize((self.HEIGHT, self.WIDTH))
         self.widgets_panel = DevWidgetsPanel(self)
         if self.verified_ports:
             self.widgets_panel.fill_ports(self.verified_ports)
+        self.widgets_panel.SetSize((self.HEIGHT * 0.6, self.WIDTH))
         self.build_sep_panel()
         self.build_comm_panel()
         self.build_button_panel()
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
-        sizer_1.Add(self.widgets_panel, 0, wx.EXPAND, 0)
-        sizer_1.Add(self.SepPanel, 0, wx.ALL | wx.EXPAND, 0)
-        sizer_1.Add(self.CommPanel, 1, wx.EXPAND, 0)
-        sizer_1.Add(self.ButtonsPanel, 0, wx.EXPAND, 0)
+        sizer_1.Add(self.widgets_panel)
+        sizer_1.Add(self.SepPanel, 0)
+        sizer_1.Add(self.CommPanel)
+        sizer_1.Add(self.ButtonsPanel)
         self.SetSizer(sizer_1)
+        sizer_1.Fit(self)
         self.Layout()
 
-        #TODO: mutex to lock this while it's being filled.
         self.incoming_frame = None
 
         self.ser = None

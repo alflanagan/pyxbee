@@ -16,7 +16,7 @@ def hex_str(data):
 
 class Setting(object):
     """
-    Setting for an xbee device. Name, AT command(s) used to get/set it 
+    Setting for an xbee device. Name, AT command(s) used to get/set it
     whether it's writable, etc.
     """
     def __init__(self, name, at_cmds, writable=True, readable=True):
@@ -123,4 +123,7 @@ class SettingsNotebook(wx.Notebook):
         super(SettingsNotebook, self).__init__(parent, *args, **kwargs)
         self.page1 = NotebookPage1Panel(self)
         self.AddPage(self.page1, "Basic")
-        self.SetBackgroundColour("#FF3300")
+        #self.SetBackgroundColour("#FF3300")
+        sizer = wx.BoxSizer()
+        sizer.Add(self.page1, 1, wx.EXPAND)
+        self.SetSizer(sizer)

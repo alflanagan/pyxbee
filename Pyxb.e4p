@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-4.6.dtd">
 <!-- eric4 project file for project Pyxb -->
-<!-- Saved: 2012-06-09, 19:35:27 -->
+<!-- Saved: 2012-06-14, 21:30:30 -->
 <!-- Copyright (C) 2012 ,  -->
 <Project version="4.6">
   <Language>en</Language>
@@ -13,11 +13,7 @@
   <Email></Email>
   <Sources>
     <Source>com/alloydflanagan/pyxb/ui/app.py</Source>
-    <Source>com/alloydflanagan/hardware/xbee/APIFrameStream.py</Source>
-    <Source>com/alloydflanagan/hardware/xbee/APIFrameATCmd.py</Source>
     <Source>com/alloydflanagan/hardware/xbee/XBeeSettings.py</Source>
-    <Source>com/alloydflanagan/hardware/xbee/APIFrame.py</Source>
-    <Source>com/alloydflanagan/hardware/xbee/XBees.py</Source>
     <Source>com/alloydflanagan/hardware/xbee/__init__.py</Source>
     <Source>com/alloydflanagan/hardware/errors.py</Source>
     <Source>com/alloydflanagan/hardware/__init__.py</Source>
@@ -29,6 +25,7 @@
     <Source>com/alloydflanagan/__init__.py</Source>
     <Source>com/__init__.py</Source>
     <Source>__init__.py</Source>
+    <Source>com/alloydflanagan/pyxb/ui/SettingsNotebook.py</Source>
   </Sources>
   <Forms>
   </Forms>

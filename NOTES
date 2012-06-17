@@ -53,5 +53,14 @@ XBee 2. It takes care of some of the low-level stuff I was spending time on,
 and seems to working nicely.
 
 Ran into major problems with wxPython 2.8 and the wx.TextCtl. Like "crashes
-the app when attempting to write multiple lines." Switchede to 2.9 and all my
+the app when attempting to write multiple lines." Switched to 2.9 and all my
 problems went away.
+
+6/17
+
+Best practices note: When you have a sub-panel on a wx window, it works far
+better to implement the panel as separate class than to try to build and add
+its children in the parent. Looks like a lot of (relatively) small classes
+is the way to go. Not sure if this is a product of how wxPython works or just
+some defect in my understanding.
+

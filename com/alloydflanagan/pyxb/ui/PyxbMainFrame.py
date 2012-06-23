@@ -37,20 +37,23 @@ class MyButton(wx.Button):
 
     @param parent: The parent window.
     @type parent: L{wx.Window}
-    @param id: An identifier for the panel. wxID_ANY is taken to mean a default.
+    @param id: An identifier for the panel. wxID_ANY is taken to mean a default
     @type id: int
-    @param pos: The panel position. The value wxDefaultPosition indicates a default position, chosen by either the windowing system or wxWidgets, depending on platform.
+    @param pos: The panel position. The value wxDefaultPosition indicates a
+                default position, chosen by either the windowing system or
+                wxWidgets, depending on platform.
     @type pos: wx.Position, or a two-tuple.
-    @param size: The panel size. The value wxDefaultSize indicates a default size, chosen by either the windowing system or wxWidgets, depending on platform.
+    @param size: The panel size. The value wxDefaultSize indicates a default
+                 size, chosen by either the windowing system or wxWidgets,
+                 depending on platform.
     @type size: wx.Size, or a two-tuple.
     @param style: The window style. See wxPanel.
     @type style: wx.Style, or int
     @param name: Window name.
     @type name: string
-    @param addto: keyword argument. If present, button will be added to the sizer
+    @keyword addto: If present, button will be added to the sizer
     @type addto: L{wx.Sizer}
-    @param bindto: keyword argument. If present, button event will be bound
-    to this value.
+    @keyword bindto: If present, button event will be bound to this value.
     @type bindto: Event handler (callable w/one argument)
     """
     def __init__(self, *args, **kwargs):
@@ -81,7 +84,7 @@ class MyButton(wx.Button):
 class DataPanel(wx.Panel):
     def __init__(self, *args, **kwargs):
         super(DataPanel, self).__init__(*args, **kwargs)
-        self.SetMinSize((-1, 250))
+        #self.SetMinSize((-1, 250))
 
         sizer = wx.BoxSizer(wx.VERTICAL)
         lbl = wx.StaticText(self, wx.ID_ANY, "Device Info")
@@ -101,11 +104,10 @@ class ListBoxPanel(wx.Panel):
         self.list_radio_label.SetBackgroundColour(wx.Colour(216, 216, 191))
         self.list_box_1 = wx.ListBox(self, choices=[],
                                      style=wx.LB_SINGLE | wx.LB_NEEDED_SB)
-        self.list_box_1.SetMinSize((145, 166))
         self.list_box_szr = wx.BoxSizer(wx.VERTICAL)
         self.list_box_szr.Add(self.list_radio_label, 0, wx.ALL, border=10)
-        self.list_box_szr.Add(self.list_box_1,
-                              flag=wx.RIGHT | wx.LEFT | wx.BOTTOM,
+        self.list_box_szr.Add(self.list_box_1, 1,
+                              flag=wx.EXPAND,
                               border=5)
         self.SetSizer(self.list_box_szr)
 
@@ -114,13 +116,10 @@ class DevWidgetsPanel(wx.Panel):
 
     def __init__(self, parent, *args, **kwargs):
         super(DevWidgetsPanel, self).__init__(parent, *args, **kwargs)
-        self.HEIGHT = 200
-        self.WIDTH = 300
         self.SetBackgroundColour((216, 216, 191))
-        self.SetMinSize((self.HEIGHT, self.WIDTH))
         self.list_panel = ListBoxPanel(self, wx.ID_ANY)
         self.data_panel = DataPanel(self, wx.ID_ANY)
-        self.data_panel.SetMinSize((self.HEIGHT * 0.7, self.WIDTH))
+        #self.data_panel.SetMinSize((self.HEIGHT * 0.7, self.WIDTH))
         self.top_widgets_sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.top_widgets_sizer.Add(self.list_panel)
         self.top_widgets_sizer.Add(self.data_panel, 1)
@@ -135,6 +134,38 @@ class DevWidgetsPanel(wx.Panel):
         pass
         #for port in port_list:
         #    self.list_box_1.AppendAndEnsureVisible(port)
+
+    def populate(self, xbee_dev=None):
+        if xbee_dev:
+            self.xb = xbee_dev
+        self.data_panel.notebook.page1.xbee = self.xb
+        self.data_panel.notebook.page1.populate()
+
+
+class CommPanel(wx.Panel):
+    def __init__(self, *args, **kwargs):
+        """
+        Window parent
+        int id=-1
+        Point pos=DefaultPosition
+        Size size=DefaultSize
+        long style=wxTAB_TRAVERSAL|wxNO_BORDER
+        String name=PanelNameStr
+        """
+        try:
+            kwargs["style"] |= wx.SUNKEN_BORDER | wx.TAB_TRAVERSAL
+        except KeyError:
+            kwargs["style"] = wx.SUNKEN_BORDER | wx.TAB_TRAVERSAL
+        super(CommPanel, self).__init__(*args, **kwargs)
+
+        self.SetBackgroundColour(wx.Colour(0, 216, 191))
+        self.SetForegroundColour(wx.Colour(0, 0, 0))
+        self.SetSize((200, 200))
+        self.text_ctl = wx.TextCtrl(self, wx.ID_ANY, "",
+                                    style=wx.TE_READONLY | wx.TE_MULTILINE)
+        self.szr = wx.BoxSizer(wx.VERTICAL)
+        self.szr.Add(self.text_ctl, 1, wx.EXPAND)
+        self.SetSizer(self.szr)
 
 
 class PyxbMainFrame(wx.Frame):
@@ -169,8 +200,6 @@ class PyxbMainFrame(wx.Frame):
 
         """
 
-        defaults = self.GetClassDefaultAttributes()
-        print(defaults)
         kwds["style"] = wx.DEFAULT_FRAME_STYLE
         super(PyxbMainFrame, self).__init__(*args, **kwds)
 
@@ -200,19 +229,20 @@ class PyxbMainFrame(wx.Frame):
                                                  i)
 
         #main panels
-        self.SetSize((self.HEIGHT, self.WIDTH))
+        self.SetMinSize((self.WIDTH, self.HEIGHT))
         self.widgets_panel = DevWidgetsPanel(self)
         if self.verified_ports:
             self.widgets_panel.fill_ports(self.verified_ports)
-        self.widgets_panel.SetSize((self.HEIGHT * 0.6, self.WIDTH))
+        self.widgets_panel.SetMinSize((self.WIDTH, self.HEIGHT * 0.6))
         self.build_sep_panel()
-        self.build_comm_panel()
+        self.comm_panel = CommPanel(self, wx.ID_ANY)
         self.build_button_panel()
+
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
-        sizer_1.Add(self.widgets_panel)
+        sizer_1.Add(self.widgets_panel, 1, wx.EXPAND)
         sizer_1.Add(self.SepPanel, 0)
-        sizer_1.Add(self.CommPanel)
-        sizer_1.Add(self.ButtonsPanel)
+        sizer_1.Add(self.comm_panel, 1, wx.EXPAND)
+        sizer_1.Add(self.ButtonsPanel, 0, wx.EXPAND)
         self.SetSizer(sizer_1)
         sizer_1.Fit(self)
         self.Layout()
@@ -230,18 +260,6 @@ class PyxbMainFrame(wx.Frame):
         """
         for port in self.ports:
             self.verified_ports.append(port[0])
-
-    def build_comm_panel(self):
-        self.CommPanel = wx.Panel(self, -1,
-                                  style=wx.SUNKEN_BORDER | wx.TAB_TRAVERSAL)
-        self.CommPanel.SetBackgroundColour(wx.Colour(0, 216, 191))
-        self.CommPanel.SetForegroundColour(wx.Colour(0, 0, 0))
-        self.CommPanel.SetSizeWH(200, 200)
-        self.text_ctl = wx.TextCtrl(self.CommPanel, wx.ID_ANY, "",
-                                    style=wx.TE_READONLY | wx.TE_MULTILINE)
-        self.comm_szr = wx.BoxSizer(wx.VERTICAL)
-        self.comm_szr.Add(self.text_ctl, 1, wx.EXPAND)
-        self.CommPanel.SetSizer(self.comm_szr)
 
     def build_sep_panel(self):
         """
@@ -310,8 +328,7 @@ class PyxbMainFrame(wx.Frame):
                                  rtscts=False,
                                  baudrate=9600)
         self.xb = ZigBee(self.ser, escaped=True)
-        self.widgets_panel.page1_panel.xb = self.xb
-        self.widgets_panel.page1_panel.populate()
+        self.widgets_panel.populate(self.xb)
 
     def read_frame(self):
         """

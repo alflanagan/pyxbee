@@ -85,7 +85,7 @@ class NotebookPage1Panel(wx.Panel):
         return self.xb
 
     @xbee.setter
-    def set_xbee(self, xbee):
+    def xbee(self, xbee):
         self.xb = xbee
 
     def set_value(self, field, value):

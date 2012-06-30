@@ -3,7 +3,7 @@ Created on Jun 7, 2012
 
 @author: lloyd
 '''
-import wx
+from gi.repository import Gtk, GObject #@UnresolvedImport
 from xbee import ZigBee
 
 
@@ -34,10 +34,10 @@ class Setting(object):
         self.txt_ctrl = txt_ctrl
 
 
-class NotebookPage1Panel(wx.Panel):
+class BasicSettingContents(object):
+    """Class to "own" contents of GridSizer set up to display basic settings of the XBee device"""
 
-    def __init__(self, parent, *args, **kwargs):
-        super(NotebookPage1Panel, self).__init__(parent, *args, **kwargs)
+    def __init__(self, device_name, grid_sizer_to_populate):
         self.settings = {
             "PAN ID": Setting("pan_id", "ID"),
             "Serial": Setting("serial", ("SH", "SL")),
@@ -51,19 +51,16 @@ class NotebookPage1Panel(wx.Panel):
         """dict of labels for settings field --> AT command used to get/set
         that value. if two commands given, they set/return high and low parts
         of a 64-bit value."""
-
-        panel_sizer = wx.FlexGridSizer(rows=len(self.settings), cols=2, vgap=2,
-                                       hgap=5)
-        panel_sizer.SetFlexibleDirection(wx.HORIZONTAL)
+        self.stg_lbls = {}
+        self.stg_values = {}
+        
         for lbl in self.settings:
-            txt = wx.StaticText(self, label=lbl, style=wx.ALIGN_RIGHT)
-            val = wx.TextCtrl(self)
-            val.SetMinSize((175, -1))
-            self.settings[lbl].output_ctrl = val
-            panel_sizer.Add(txt)
-            panel_sizer.Add(val)
-        self.SetSizer(panel_sizer)
-
+            self.stg_lbls[lbl] = Gtk.Label(lbl)
+            self.stg_values[lbl] = Gtk.Entry()
+            grid_sizer_to_populate.add(self.stg_lbls[lbl])
+            grid_sizer_to_populate.add(self.stg_values[lbl])
+            
+        
     def _add_prop(self, prop_name):
         """
         Rather than define a getter and setter for every value displayed, we
@@ -107,23 +104,3 @@ class NotebookPage1Panel(wx.Panel):
         self.xb.at(command="%V")
         resp = self.xb.wait_read_frame()
         print(hex_str(resp['parameter']))
-
-
-class SettingsNotebook(wx.Notebook):
-    '''
-    Notebook object which displays/sets values for xbee device.
-    '''
-
-    def __init__(self, parent, *args, **kwargs):
-        '''
-        Create notebook for device xbee.
-
-        @param xbee: Object of type xbee.Zigbee
-        '''
-        super(SettingsNotebook, self).__init__(parent, *args, **kwargs)
-        self.page1 = NotebookPage1Panel(self)
-        self.AddPage(self.page1, "Basic")
-        #self.SetBackgroundColour("#FF3300")
-        sizer = wx.BoxSizer()
-        sizer.Add(self.page1, 1, wx.EXPAND)
-        self.SetSizer(sizer)

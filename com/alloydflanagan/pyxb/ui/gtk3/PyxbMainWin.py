@@ -7,11 +7,13 @@ Created on Jun 23, 2012
 from gi.repository import Gtk #@UnresolvedImport #uses a dynamic importer.
 #problem with dynamic importer is that aptana can't get completion info. hmmm...
 from serial.tools import list_ports
-from com.alloydflanagan.pyxb.ui.SettingsNotebook import BasicSettingContents
+from serial.serialutil import SerialException
+from com.alloydflanagan.pyxb.ui.gtk3.SettingsNotebook import BasicSettingContents
 
 class PyxbMainWin(object):
 
     def __init__(self, *args, **kwargs):
+        self.selected_port = ''
         self.builder = Gtk.Builder()
         self.builder.add_from_file("PyxbMainWin.glade")  
 
@@ -19,6 +21,8 @@ class PyxbMainWin(object):
         self.close_btn = self.builder.get_object("btnClose")
         self.ports_list = self.builder.get_object("liststore1")
         self.ports_view = self.builder.get_object("dev_list_tview")
+        self.page1_child= self.builder.get_object("stg_pg1_child")
+        self.text_view = self.builder.get_object("textview1")
         renderer = Gtk.CellRendererText()
         column = Gtk.TreeViewColumn(None, renderer, text=0)
         column.set_widget(None) #no header
@@ -44,12 +48,19 @@ class PyxbMainWin(object):
 
     def setup_notebook_pages(self, tree_selection):
         model, treeiter = tree_selection.get_selected()
-        page1_child= self.builder.get_object("stg_pg1_child")
-        assert page1_child
-        if treeiter != None:
-            print ("You selected", model[treeiter][0])
-            self.p1_panel = BasicSettingContents(model[treeiter][0], page1_child)
-            self.stg_notebook.set_current_page(1)
+        if model[treeiter][0] != self.selected_port:
+            self.selected_port = model[treeiter][0]
+            if treeiter != None:
+                print ("You selected", self.selected_port)
+                for child in self.page1_child.get_children():
+                    self.page1_child.remove(child)
+                try:
+                    self.p1_panel = BasicSettingContents(self.selected_port, self.page1_child)
+                except SerialException as err:
+                    buff = self.text_view.get_buffer()
+                    buff.insert_at_cursor("{}: {}\n".format(self.selected_port, str(err) ))
+                #self.stg_notebook.set_current_page(0)
+            self.win.show_all()
     
     def close_btn_clicked(self, event):
         Gtk.main_quit()

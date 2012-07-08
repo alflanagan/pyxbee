@@ -3,7 +3,7 @@ Created on Jun 7, 2012
 
 @author: lloyd
 '''
-from gi.repository import Gtk #@UnresolvedImport
+from gi.repository import Gtk  # @UnresolvedImport
 from xbee import ZigBee
 from serial import Serial
 
@@ -15,18 +15,35 @@ def hex_str(data):
     return result
 
 
+#TODO: IMPORTANT: Separate settings info from notebook gui, move to
+#      module hardware.xbee
 class Setting(object):
     """
     Setting for an xbee device. Name, AT command(s) used to get/set it
     whether it's writable, etc.
     """
-    def __init__(self, name, at_cmds, writable=True, readable=True):
+    def __init__(self, name, at_cmds, writable=True, readable=True,
+                 encoding="hex"):
+        """
+        name: short readable name for setting.
+        at_cmds: tuple of one or more two-byte strings, used to get/set value.
+                 For multi-byte commands, the one to set high bytes comes
+                 first.
+        writable: if False, setting is read-only
+        readable: if False, setting is write-only
+        encoding: encoding of value, useful for display, etc.
+            Acceptable values:
+            # any encoding string accepted by str() (usually "ascii")
+            # "hex" to display as hex string
+            # "enabled" to display 0 as "disabled" and 1 as "enabled"
+        """
         self.name = name
         self.cmds = []
         for c in at_cmds:
-            self.cmds.append(c.encode('utf-8'))
+            self.cmds.append(c.encode('ascii'))
         self.writeable = writable
         self.readable = readable
+        self.encoding = encoding
 
     @property
     def output_ctrl(self):
@@ -38,7 +55,7 @@ class Setting(object):
 
     def set_device(self, xbee):
         self.xb = xbee
-        
+
     def read_value(self):
         if not self.xb or not self.cmds[0]:
             return ''
@@ -46,16 +63,24 @@ class Setting(object):
         for cmd in self.cmds:
             self.xb.at(command=cmd)
             resp = self.xb.wait_read_frame()
-            result += hex_str(resp['parameter'])
+            if self.encoding == 'hex':
+                result += hex_str(resp['parameter'])
+            elif self.encoding == 'enabled':
+                if resp['parameter'] == 0:
+                    result = 'disabled'
+                else:
+                    result = 'enabled'
+            else:
+                result += str(resp['parameter'], self.encoding)
         return result
 
 
 class SettingContents(object):
     """
-    Defines common functionality of classes to "own" contents of 
+    Defines common functionality of classes to "own" contents of
     GridSizer set up to display basic settings of the XBee device.
     """
-    #TODO: define class to hold settings for a device, another to handle display
+    #TODO: define class for settings for a device, another to handle display
     def __init__(self):
         super(SettingContents, self).__init__()
         self.settings = {}
@@ -68,7 +93,7 @@ class SettingContents(object):
         """Gtk.Label objects for page, indexed by label's text."""
         self.stg_values = {}
         """Gtk.Entry objects for page, indexed by label's text."""
-        
+
     def _set_device(self, device_name):
 #args to serial
 #         port = None,           # number of device, numbering starts at
@@ -84,8 +109,9 @@ class SettingContents(object):
 #         xonxoff=False,         # enable software flow control
 #         rtscts=False,          # enable RTS/CTS flow control
 #         writeTimeout=None,     # set a timeout for writes
-#         dsrdtr=False,          # None: use rtscts setting, dsrdtr override if True or False
-#         interCharTimeout=None  # Inter-character timeout, None to disable            
+#         dsrdtr=False,          # None: use rtscts setting, dsrdtr
+#                                #override if True or False
+#         interCharTimeout=None  # Inter-character timeout, None to disable
         self.current_port = Serial(port=device_name)
         self.xb = ZigBee(self.current_port, shorthand=True, escaped=False)
         for stg in self.settings:
@@ -130,28 +156,57 @@ class SettingContents(object):
 
 
 class BasicSettingContents(SettingContents):
-    """Class to "own" contents of GridSizer set up to display basic settings of the XBee device"""
+    """Class to "own" contents of GridSizer set up to display basic settings of
+    the XBee device"""
 #TODO: define class to hold settings for a device, another to handle display
     def __init__(self, device_name, grid_sizer_to_populate):
         super(BasicSettingContents, self).__init__()
 
         self.settings = {
-            "PAN ID": Setting("pan_id", ("ID", )),
+            "PAN ID": Setting("pan_id", ("ID",)),
             "Serial": Setting("serial", ("SH", "SL")),
             "Destination": Setting("dest", ("DH", "DL")),
-            "Address": Setting("addr", ("MY", )),
-            "Children Avail": Setting("kids", ("", ), writable=False),
-            "Max Payload": Setting("max", ("", ), writable=False),
-            "Encryption?": Setting("crypt", ("", )),
-            "Version": Setting("ver", ("", ), writable=False),
+            "Address": Setting("addr", ("MY",)),
+            "Children Avail": Setting("kids", ("NC",), writable=False),
+            "Max Payload": Setting("max", ("NP",), writable=False),
+            "Node ID": Setting("nodeid", ("NI",), writable=False,
+                               encoding="ascii"),
+            "Version": Setting("ver", ("",), writable=False),
             }
-        
+
         for lbl in self.settings:
             self.stg_lbls[lbl] = Gtk.Label(lbl)
             self.stg_values[lbl] = Gtk.Entry()
             grid_sizer_to_populate.add(self.stg_lbls[lbl])
             grid_sizer_to_populate.attach_next_to(self.stg_values[lbl],
-                                                  self.stg_lbls[lbl], 
+                                                  self.stg_lbls[lbl],
+                                                  Gtk.PositionType.RIGHT, 1, 1)
+        self._set_device(device_name)
+        self.populate()
+
+
+class Network1SettingContents(SettingContents):
+    """
+    Class to "own" some settings related to network
+    """
+    def __init__(self, device_name, grid_sizer_to_populate, *args, **kwargs):
+        super(Network1SettingContents, self).__init__(*args, **kwargs)
+        self.settings = {"Operating Channel": Setting("op_chnl", ("CH",),
+                                                      writable=False),
+                         "Operating PAN ID": Setting("op_pan_id", ("OI",),
+                                                     writable=False),
+                         "Max Unicast Hops": Setting("max_uhops", ("NH",)),
+                         "Broadcast Hops": Setting("bcast_hops", ("BH",)),
+                         "Node Disc T/O": Setting("node_dto", ("NT",)),
+                         "Ntwk Disc Options": Setting("ntwk_dopts", ("NO",)),
+                         }
+
+        for lbl in self.settings:
+            self.stg_lbls[lbl] = Gtk.Label(lbl)
+            self.stg_values[lbl] = Gtk.Entry()
+            grid_sizer_to_populate.add(self.stg_lbls[lbl])
+            grid_sizer_to_populate.attach_next_to(self.stg_values[lbl],
+                                                  self.stg_lbls[lbl],
                                                   Gtk.PositionType.RIGHT, 1, 1)
         self._set_device(device_name)
         self.populate()

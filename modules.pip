@@ -1,3 +1,2 @@
 pyserial==2.6
 XBee==2
-wxPython-common==2.9

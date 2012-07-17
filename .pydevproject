@@ -8,4 +8,7 @@
 <path>/pyxbee</path>
 </pydev_pathproperty>
 
+<pydev_pathproperty name="org.python.pydev.PROJECT_EXTERNAL_SOURCE_PATH">
+<path>/home/lloyd/python-environments/xbee3/lib/python3.2/site-packages/pyserial_py3k-2.6-py3.2.egg-info</path>
+</pydev_pathproperty>
 </pydev_project>

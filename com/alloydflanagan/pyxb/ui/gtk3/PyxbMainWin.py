@@ -4,14 +4,15 @@ Created on Jun 23, 2012
 @author: lloyd
 '''
 
+import os
 from gi.repository import Gtk  # @UnresolvedImport uses a dynamic importer.
 #problem with dynamic importer is that aptana can't get completion info.
 from serial.tools import list_ports
 from serial.serialutil import SerialException
+from com.alloydflanagan.pyxb.ui.gtk3.SettingsNotebook import \
+    BasicSettingContents, Network1SettingContents, Network2SettingContents
 #hmmm.. can't get relative import to work, python says not package?!?!?!
 #from .SettingsNotebook import BasicSettingContents
-from com.alloydflanagan.pyxb.ui.gtk3.SettingsNotebook import(
-    BasicSettingContents, Network1SettingContents, Network2SettingContents)
 
 
 class PyxbMainWin(object):
@@ -19,7 +20,8 @@ class PyxbMainWin(object):
     def __init__(self, *args, **kwargs):
         self.selected_port = ''
         self.builder = Gtk.Builder()
-        self.builder.add_from_file("PyxbMainWin.glade")
+        my_dir = os.path.dirname(__file__)
+        self.builder.add_from_file(os.path.join(my_dir, "PyxbMainWin.glade"))
 
         self.win = self.builder.get_object("PyxbMainWin")
         self.close_btn = self.builder.get_object("btnClose")
@@ -56,15 +58,25 @@ class PyxbMainWin(object):
         self.win.show_all()
 
     def populate_devices(self):
-        self.ports = list_ports.comports()
+        try:
+            self.ports = list_ports.comports()
+            print(self.ports)
+        except TypeError as te:
+            print(te)
         self.ports.sort()
         for p in self.ports:
-            self.ports_list.append((p[0],))
+            if p[2] == 'n/a':
+                self.ports_list.append((p[0],))
+            else:
+                self.ports_list.append((p[0] + ": " + p[2],))
 
     def setup_notebook_pages(self, tree_selection):
         model, treeiter = tree_selection.get_selected()
         if model[treeiter][0] != self.selected_port:
             self.selected_port = model[treeiter][0]
+            if ':' in self.selected_port:
+                self.selected_port = self.selected_port[:self.selected_port.find(':')]
+
             if treeiter != None:
                 print ("You selected", self.selected_port)
                 try:

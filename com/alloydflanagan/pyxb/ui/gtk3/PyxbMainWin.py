@@ -49,6 +49,7 @@ class PyxbMainWin(object):
         self.ports_view.append_column(column)
 
         self.win.connect("delete-event", Gtk.main_quit)
+        #TODO: Bind to an action, which is bound to button
         self.close_btn.connect("clicked", self.close_btn_clicked)
 
         select = self.ports_view.get_selection()
@@ -60,7 +61,7 @@ class PyxbMainWin(object):
     def populate_devices(self):
         try:
             self.ports = list_ports.comports()
-            print(self.ports)
+            #print(self.ports)
         except TypeError as te:
             print(te)
         self.ports.sort()
@@ -78,7 +79,7 @@ class PyxbMainWin(object):
                 self.selected_port = self.selected_port[:self.selected_port.find(':')]
 
             if treeiter != None:
-                print ("You selected", self.selected_port)
+                #print ("You selected", self.selected_port)
                 try:
                     for child in self.page1_child.get_children():
                         self.page1_child.remove(child)

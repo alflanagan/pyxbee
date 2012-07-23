@@ -3,7 +3,7 @@ Created on Jul 8, 2012
 
 @author: lloyd
 '''
-
+from collections import MutableMapping #help Settings emulate dictionary
 
 class WriteException(Exception):
     """
@@ -62,12 +62,12 @@ class ReadableSetting(UnboundSetting):
         """
         result = ""
         try:
-            self.xb
+            self.device
         except AttributeError as ae:
             raise ReadException("no xbee device found")
         for cmd in self.at_cmds:
-            self.xb.at(command=cmd)
-            resp = self.xb.wait_read_frame()
+            self.device.at(command=cmd)
+            resp = self.device.wait_read_frame()
             try:
                 returned_val = resp["parameter"]
                 if self.encoding == "hex":
@@ -97,19 +97,23 @@ class WritableSetting(ReadableSetting):
         pass
 
 
-class Settings(object):
+class Settings(MutableMapping):
     """
-    A class to hold a collection of settings. Allows us to create a group of
-    unbound settings, and then, when we've selected an XBee device, to get a
-    group of the settings bound to a given device.
+    A class to hold a collection of settings. Basically a dictionary of Setting objects, with
+    additional methods for binding them to a device, reading all of them from the device, etc.
     """
     def __init__(self, cmds, *args, **kwargs):
         """
+        Create Settings objects containing the settings specified in the cmds argument. Elements
+        in cmds become the keys to the Settings dictionary.
+
+        For now at least, each item in cmds should be a key to the at_cmds global structure.
+
         @param cmds: commands to keep
-        @type cmds: string iterable
+        @type cmds: iterable of immutable objects (usually strings)
         """
         super(Settings, self).__init__(*args, **kwargs)
-        self.cmds = cmds
+        self.cmds = list(cmds) #make our own copy!!
         self.stgs = {}
 
     def bind(self, xbee_device):
@@ -136,28 +140,69 @@ class Settings(object):
             values[cmd] = self.stgs[cmd].value
         return values
 
-    def __getitem__(self, name):
-        try:
-            return self.stgs[name]
-        except KeyError:
-            if name in self.cmds:
-                raise ReadException("Setting object is not bound to xbee device")
-            else:
-                raise ReadException("I don't know about setting '{}'".format(name))
+    def __iter__(self):
+        """
+        Returns iterator for keys.
+        """
+        return self.stgs.__iter__()
+
+    def keys(self):
+        return self.stgs.keys()
+
+    #define dictionary interface so client never has to refer to stgs directly
+    def __getitem__(self, key):
+        return self.stgs[key]
+
+    def __setitem__(self, key, new_val):
+        """
+        Adds / replaces item with key 'key'.
+
+        If new_val is an UnboundSetting object (or subclass thereof), the value gets set directly.
+        otherwise new_val should be a key of the at_cmds dictionary.
+        """
+        #don't see a way around type-checking here that doesn't allow 'bad' things to happen
+        if isinstance(new_val, UnboundSetting):
+            self.stgs[key] = new_val
+        else:
+            self.stgs[key] = at_cmds[new_val]
+
+    def __delitem__(self, key):
+        """
+        Deletes item at key, if any.
+        """
+        self.stgs.__delitem__(key)
+
+    def __len__(self):
+        return self.stgs.__len__()
 
 at_cmds = {
-    "PAN ID": ("ID", "Network ID for this node"),
-    "Serial": (("SH", "SL"), "Serial number for the device", True),
-    "Destination": (("DH", "DL"),
+    "PAN ID": ((b"ID",), "Network ID for this node"),
+    "Serial": ((b"SH", b"SL"), "Serial number for the device", True),
+    "Destination": ((b"DH", b"DL"),
                     ("The 64-bit destination address. Special values include "
                      "0x000000000000FFFF (broadcast) and 0x0000000000000000 "
                      "(coordinator).")),
-    "Address": (("MY",), "Current network address for this node", True),
-    "Children Avail": (("NC",), "", True),
-    "Max Payload": (("NP",), "", True),
-    "Node ID": (("NI",), "", True, "ascii"),
-    "Version": (("",), "", True),
-    "Parent Addr": (("MP",), "16-bit Parent Network Address. 0xFFFE means the module does not have a parent.", True),
-    "Remaining Kids": (("NC",), "Reads the number of end device children that can join the device.", True),
-    "Source Endpt": (("SE",), "Sets/reads the ZigBee application layer source endpoint value. This value will be used as the source endpoint for all data transmissions. SE is only supported in AT firmware. The default value (0xE8) is the Digi data endpoint."),
-    }
+    "Address": ((b"MY",), "Current network address for this node", True),
+    "Children Avail": ((b"NC",), "", True),
+    "Max Payload": ((b"NP",), "", True),
+    "Node ID": ((b"NI",), "", True, "ascii"),
+    "Parent Addr": ((b"MP",), "16-bit Parent Network Address. 0xFFFE means the module does not have a parent.", True),
+    "Remaining Kids": ((b"NC",), "Reads the number of end device children that can join the device.", True),
+    "Source Endpt": ((b"SE",), "Sets/reads the ZigBee application layer source endpoint value. This value will be used as the source endpoint for all data transmissions. SE is only supported in AT firmware. The default value (0xE8) is the Digi data endpoint."),
+
+    "Oper Channel": ((b"CH",), "", True),
+    "Oper PAN ID": ((b"OI",), "", True),
+    "Max Uni Hops": ((b"NH",), ""),
+    "Bcast Hops": ((b"BH",), ""),
+    "Disc T/O": ((b"NT",), ""),
+    "Disc Opt": ((b"NO",), ""),
+    #TODO: custom display for SC
+    "Scan Channels": ((b"SC",), ""),
+    "Scan Duration": ((b"SD",), ""),
+    "Stack Prof": ((b"ZS",), ""),
+    "Join Time": ((b"NJ",), ""),
+    "Chan Ver": ((b"JV",), ""),
+    "Net WD TO": ((b"NW",), ""),
+    "Join Notif": ((b"JN",), ""),
+    "Aggr Rtg Not": ((b"AR",), ""),
+}

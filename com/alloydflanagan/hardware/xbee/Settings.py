@@ -4,6 +4,7 @@ Created on Jul 8, 2012
 @author: lloyd
 '''
 from collections import MutableMapping #help Settings emulate dictionary
+from xbee.base import ReadTimeoutException
 
 class WriteException(Exception):
     """
@@ -32,7 +33,7 @@ class UnboundSetting(object):
         """
         self.name = name
         self.at_cmds = at_cmds
-        self.encoding = "hex"
+        self.encoding = encoding
         self.tooltip = tooltip
 
     def value(self):
@@ -40,10 +41,38 @@ class UnboundSetting(object):
         return b""
 
 
+def disp_version(firmware_version):
+    #TODO: We need a whole data structure with device model, firmware version, etc.
+# 20xx - Coordinator - AT/Transparent Operation
+#- 21xx - Coordinator - API Operation
+#- 22xx - Router - AT/Transparent Operation
+#- 23xx - Router - API Operation
+#- 28xx - End Device - AT/Transparent Operation
+#- 29xx - End Device - API Operation
+    prefix = int.from_bytes(firmware_version[:1], 'big')
+    verint = int.from_bytes(firmware_version, 'big')
+    vstr = "{:X}".format(verint)
+    if prefix == 0x20:
+        return "{} Coord(AT)".format(vstr)
+    elif prefix == 0x21:
+        return "{} Coord(API)".format(vstr)
+    elif prefix == 0x22:
+        return "{} Routr(AT)".format(vstr)
+    elif prefix == 0x23:
+        return "{} Routr(API)".format(vstr)
+    elif prefix == 0x28:
+        return "{} End(AT)".format(vstr)
+    elif prefix == 0x29:
+        return "{} End(API)".format(vstr)
+    else:
+        return "{} unknown".format(vstr)
+
+
 class ReadableSetting(UnboundSetting):
-    def __init__(self, xbee, *args, **kwargs):
+    def __init__(self, xbee, timeout=5, *args, **kwargs):
         super(ReadableSetting, self).__init__(*args, **kwargs)
         self.device = xbee
+        self.timeout = timeout
 
     @staticmethod
     def hex_str(data):
@@ -63,20 +92,27 @@ class ReadableSetting(UnboundSetting):
         result = ""
         try:
             self.device
-        except AttributeError as ae:
+        except AttributeError:
             raise ReadException("no xbee device found")
+        #send each AT cmd, accumulate result
         for cmd in self.at_cmds:
             self.device.at(command=cmd)
-            resp = self.device.wait_read_frame()
+            try:
+                resp = self.device.wait_read_frame(self.timeout)
+            except ReadTimeoutException as e:
+                raise ReadException("Timeout on command '{}'".format(cmd)) from e
+
             try:
                 returned_val = resp["parameter"]
                 if self.encoding == "hex":
                     result += self.hex_str(returned_val)
                 elif self.encoding == "enabled":
                     if returned_val == 0:
-                        result = "disabled"
+                        result += "disabled"
                     else:
-                        result = "enabled"
+                        result += "enabled"
+                elif self.encoding == "version":
+                    result += disp_version(returned_val)
                 else:
                     result += str(returned_val, self.encoding)
             except KeyError:
@@ -102,23 +138,23 @@ class Settings(MutableMapping):
     A class to hold a collection of settings. Basically a dictionary of Setting objects, with
     additional methods for binding them to a device, reading all of them from the device, etc.
     """
-    def __init__(self, cmds, *args, **kwargs):
+    def __init__(self, names, *args, **kwargs):
         """
-        Create Settings objects containing the settings specified in the cmds argument. Elements
-        in cmds become the keys to the Settings dictionary.
+        Create Settings objects containing the settings specified in the names argument. Elements
+        in names become the keys to the Settings dictionary.
 
-        For now at least, each item in cmds should be a key to the at_cmds global structure.
+        For now at least, each item in names should be a key to the at_cmds global structure.
 
-        @param cmds: commands to keep
-        @type cmds: iterable of immutable objects (usually strings)
+        @param names: List of settings stored in this group
+        @type names: iterable of immutable objects (usually strings)
         """
         super(Settings, self).__init__(*args, **kwargs)
-        self.cmds = list(cmds) #make our own copy!!
+        self.names = list(names) #make our own copy!!
         self.stgs = {}
 
     def bind(self, xbee_device):
-        for cmd in self.cmds:
-            data = list(at_cmds[cmd])
+        for name in self.names:
+            data = list(at_cmds[name])
             #fill in default values depending on current length
             if len(data) == 1:
                 data.append("")
@@ -127,17 +163,23 @@ class Settings(MutableMapping):
             if len(data) == 3:
                 data.append("hex")
             if data[2]:
-                new_bound = ReadableSetting(xbee_device, name=cmd, at_cmds=data[0],
+                new_bound = ReadableSetting(xbee_device, name=name, at_cmds=data[0],
                                              encoding=data[3], tooltip=data[1])
             else:
-                new_bound = WritableSetting(xbee_device, name=cmd, at_cmds=data[0],
+                new_bound = WritableSetting(xbee_device, name=name, at_cmds=data[0],
                                             encoding=data[3], tooltip=data[1])
-            self.stgs[cmd] = new_bound
+            self.stgs[name] = new_bound
 
     def read_all(self):
+        """Reads all settings in collection from the bound device.
+
+        Raises xbee.base.ReadTimeoutException if the device read fails.
+        """
         values = {}
-        for cmd in self.cmds:
+
+        for cmd in self.names:
             values[cmd] = self.stgs[cmd].value
+
         return values
 
     def __iter__(self):
@@ -205,4 +247,11 @@ at_cmds = {
     "Net WD TO": ((b"NW",), ""),
     "Join Notif": ((b"JN",), ""),
     "Aggr Rtg Not": ((b"AR",), ""),
+    "Device Type": ((b"DD",), ""),
+    "Power Level": ((b"PL",), "Broadcast power level. Meaning depends on device."),
+    "Power Mode": ((b"PM",), "Power Mode Boost On", True, "enabled"),
+    "Rcvd Signal": ((b"DB",), "Received signal power, = value * -1dBm"),
+    "Module Temp": ((b"TP",), "Module temperature in deg. C, +-7 deg. (PRO S2B only)"),
+    "Version": ((b"VR",), "Firmware Version", False, "version"),
+    "HW Version": ((b"HV",), "Hardware version. 19xx -> XBee, 1Axx -> XBee Pro"),
 }

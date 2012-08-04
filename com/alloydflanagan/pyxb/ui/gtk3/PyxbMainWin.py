@@ -5,12 +5,15 @@ Created on Jun 23, 2012
 '''
 
 import os
-from gi.repository import Gtk  # @UnresolvedImport uses a dynamic importer.
+from gi.repository import Gtk, Gdk, GObject  # @UnresolvedImport uses a dynamic importer.
 #problem with dynamic importer is that aptana can't get completion info.
+
 from serial.tools import list_ports
 from serial.serialutil import SerialException
 from com.alloydflanagan.pyxb.ui.gtk3.SettingsNotebook import \
     BasicSettingContents, Network1SettingContents, Network2SettingContents
+from com.alloydflanagan.hardware.xbee.Settings import ReadException
+
 #hmmm.. can't get relative import to work, python says not package?!?!?!
 #from .SettingsNotebook import BasicSettingContents
 
@@ -24,6 +27,7 @@ class PyxbMainWin(object):
         self.builder.add_from_file(os.path.join(my_dir, "PyxbMainWin.glade"))
 
         self.win = self.builder.get_object("PyxbMainWin")
+        #top-level widget for whole window
         self.close_btn = self.builder.get_object("btnClose")
         self.ports_list = self.builder.get_object("liststore1")
         self.ports_view = self.builder.get_object("dev_list_tview")
@@ -78,8 +82,12 @@ class PyxbMainWin(object):
             if ':' in self.selected_port:
                 self.selected_port = self.selected_port[:self.selected_port.find(':')]
 
-            if treeiter != None:
-                #print ("You selected", self.selected_port)
+            def ui_work(self):
+                """
+                Local procedure to actually do the work of updating the user interface.
+                We make this a procedure and use GObject.idle_add() to allow the window to
+                set the cursor to a "watch" while the work is done.
+                """
                 try:
                     for child in self.page1_child.get_children():
                         self.page1_child.remove(child)
@@ -93,12 +101,19 @@ class PyxbMainWin(object):
                         self.page3_child.remove(child)
                     self.p3_panel = Network2SettingContents(self.selected_port,
                                                             self.page3_child)
-                except SerialException as err:
+                except (SerialException, ReadException) as err:
                     buff = self.text_view.get_buffer()
                     buff.insert_at_cursor("{}: {}\n".format(self.selected_port,
                                                             str(err)))
-            #self.stg_notebook.set_current_page(0)
-            self.win.show_all()
+                finally:
+                    self.win.show_all()
+                    self.win.get_window().set_cursor(None)
+
+            top_gdk_window = self.win.get_window()
+            watch = Gdk.Cursor(Gdk.CursorType.WATCH)
+            top_gdk_window.set_cursor(watch)
+
+            GObject.idle_add(ui_work, self)
 
     def close_btn_clicked(self, event):
         Gtk.main_quit()

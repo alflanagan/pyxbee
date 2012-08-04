@@ -64,6 +64,8 @@ class SettingContents(object):
 class NotebookPageSettingContents(SettingContents):
 
     ATCMDS = ()
+    SETTINGS_COUNT = 9 #max settings/page
+
     def __init__(self, device_name, grid_sizer_to_populate, *args, **kwargs):
         self.stg_lbls = {}
         self.stg_entries = {}
@@ -74,6 +76,13 @@ class NotebookPageSettingContents(SettingContents):
             grid_sizer_to_populate.attach_next_to(self.stg_entries[lbl],
                                                   self.stg_lbls[lbl],
                                                   Gtk.PositionType.RIGHT, 1, 1)
+        for unused in range(self.SETTINGS_COUNT - len(self.ATCMDS)):
+            pad1 = Gtk.Label("")
+            grid_sizer_to_populate.add(pad1)
+            grid_sizer_to_populate.attach_next_to(Gtk.Label(""),
+                                                  pad1,
+                                                  Gtk.PositionType.RIGHT, 1, 1)
+
         super(NotebookPageSettingContents, self).__init__(self.ATCMDS, self.stg_lbls,
                                                    self.stg_entries, *args, **kwargs)
         self._set_device(device_name)
@@ -86,16 +95,16 @@ class BasicSettingContents(NotebookPageSettingContents):
     """Class to "own" contents of GridSizer set up to display basic settings of
     the XBee device"""
 
-    ATCMDS = ("PAN ID", "Serial", "Destination", "Address", "Children Avail",
-              "Max Payload", "Node ID",)
+    ATCMDS = ("Version", "Serial", "Destination", "Address", "Children Avail",
+              "Max Payload", "Node ID", "Device Type", "HW Version",)
 
 
 class Network1SettingContents(NotebookPageSettingContents):
     """
     Class to "own" some settings related to network
     """
-    ATCMDS = ("Oper Channel", "Oper PAN ID", "Max Uni Hops", "Bcast Hops",
-              "Disc T/O", "Disc Opt", "Scan Channels", "Scan Duration", "Stack Prof",)
+    ATCMDS = ("PAN ID", "Oper Channel", "Oper PAN ID", "Max Uni Hops", "Bcast Hops",
+              "Disc T/O", "Disc Opt", "Scan Channels", "Scan Duration",)
 
 
 class Network2SettingContents(NotebookPageSettingContents):

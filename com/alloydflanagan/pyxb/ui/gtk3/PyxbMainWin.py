@@ -1,7 +1,10 @@
 '''
 Created on Jun 23, 2012
 
-@author: lloyd
+@author: A. Lloyd Flanagan
+
+A simple (?) user interface to serve some of the functions of the XTCU program
+but in a platform-independent way.
 '''
 
 import os

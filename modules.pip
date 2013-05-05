@@ -1,4 +1,5 @@
 pyserial==2.6
-XBee==2
+#nose is required by XBee but not installed automatically
 nose>=1.1
+XBee>=2
 Sphinx>=1.1

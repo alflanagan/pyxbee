@@ -6,7 +6,7 @@ Created on Jun 7, 2012
 from gi.repository import Gtk  # @UnresolvedImport
 from xbee import ZigBee
 from serial import Serial
-from com.alloydflanagan.hardware.xbee.Settings import Settings
+from hardware.xbee.Settings import Settings
 
 
 class SettingContents(object):
@@ -24,7 +24,7 @@ class SettingContents(object):
         @param entries: Widgets for entry and display of setting value
         @type entries: iterable of Gtk.Entry or equivalent
         """
-        #print(names)
+        # print(names)
         self.settings = Settings(names)
         self.stg_lbls = labels
         """Gtk.Label objects for page, indexed by label's text."""
@@ -32,7 +32,7 @@ class SettingContents(object):
         """Gtk.Entry objects for page, indexed by label's text."""
 
     def _set_device(self, device_name):
-#args to serial
+# args to serial
 #         port = None,           # number of device, numbering starts at
 #                                # zero. if everything fails, the user
 #                                # can specify a device string, note
@@ -64,7 +64,7 @@ class SettingContents(object):
 class NotebookPageSettingContents(SettingContents):
 
     ATCMDS = ()
-    SETTINGS_COUNT = 9 #max settings/page
+    SETTINGS_COUNT = 9  # max settings/page
 
     def __init__(self, device_name, grid_sizer_to_populate, *args, **kwargs):
         self.stg_lbls = {}

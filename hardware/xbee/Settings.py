@@ -3,8 +3,8 @@ Created on Jul 8, 2012
 
 @author: lloyd
 '''
-from collections import MutableMapping #help Settings emulate dictionary
-from xbee.base import ReadTimeoutException
+from collections import MutableMapping  # help Settings emulate dictionary
+# from xbee.base import ReadTimeoutException
 
 class WriteException(Exception):
     """
@@ -42,13 +42,13 @@ class UnboundSetting(object):
 
 
 def disp_version(firmware_version):
-    #TODO: We need a whole data structure with device model, firmware version, etc.
+    # TODO: We need a whole data structure with device model, firmware version, etc.
 # 20xx - Coordinator - AT/Transparent Operation
-#- 21xx - Coordinator - API Operation
-#- 22xx - Router - AT/Transparent Operation
-#- 23xx - Router - API Operation
-#- 28xx - End Device - AT/Transparent Operation
-#- 29xx - End Device - API Operation
+# - 21xx - Coordinator - API Operation
+# - 22xx - Router - AT/Transparent Operation
+# - 23xx - Router - API Operation
+# - 28xx - End Device - AT/Transparent Operation
+# - 29xx - End Device - API Operation
     prefix = int.from_bytes(firmware_version[:1], 'big')
     verint = int.from_bytes(firmware_version, 'big')
     vstr = "{:X}".format(verint)
@@ -94,7 +94,7 @@ class ReadableSetting(UnboundSetting):
             self.device
         except AttributeError:
             raise ReadException("no xbee device found")
-        #send each AT cmd, accumulate result
+        # send each AT cmd, accumulate result
         for cmd in self.at_cmds:
             self.device.at(command=cmd)
             try:
@@ -149,13 +149,13 @@ class Settings(MutableMapping):
         @type names: iterable of immutable objects (usually strings)
         """
         super(Settings, self).__init__(*args, **kwargs)
-        self.names = list(names) #make our own copy!!
+        self.names = list(names)  # make our own copy!!
         self.stgs = {}
 
     def bind(self, xbee_device):
         for name in self.names:
             data = list(at_cmds[name])
-            #fill in default values depending on current length
+            # fill in default values depending on current length
             if len(data) == 1:
                 data.append("")
             if len(data) == 2:
@@ -191,7 +191,7 @@ class Settings(MutableMapping):
     def keys(self):
         return self.stgs.keys()
 
-    #define dictionary interface so client never has to refer to stgs directly
+    # define dictionary interface so client never has to refer to stgs directly
     def __getitem__(self, key):
         return self.stgs[key]
 
@@ -202,7 +202,7 @@ class Settings(MutableMapping):
         If new_val is an UnboundSetting object (or subclass thereof), the value gets set directly.
         otherwise new_val should be a key of the at_cmds dictionary.
         """
-        #don't see a way around type-checking here that doesn't allow 'bad' things to happen
+        # don't see a way around type-checking here that doesn't allow 'bad' things to happen
         if isinstance(new_val, UnboundSetting):
             self.stgs[key] = new_val
         else:
@@ -238,7 +238,7 @@ at_cmds = {
     "Bcast Hops": ((b"BH",), ""),
     "Disc T/O": ((b"NT",), ""),
     "Disc Opt": ((b"NO",), ""),
-    #TODO: custom display for SC
+    # TODO: custom display for SC
     "Scan Channels": ((b"SC",), ""),
     "Scan Duration": ((b"SD",), ""),
     "Stack Prof": ((b"ZS",), ""),

@@ -3,4 +3,7 @@
 .ropeproject/history
 .ropeproject/objectdb
 .metadata
-wing_ide_pyxbee.wpu
+*.wpu
+pyserial
+hardware/docs
+ui/docs

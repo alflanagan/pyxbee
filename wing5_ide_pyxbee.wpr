@@ -1,0 +1,44 @@
+#!wing
+#!version=5.0
+##################################################################
+# Wing IDE project file                                          #
+##################################################################
+[project attributes]
+console.toolbox = [{'autosave': True,
+                    'cmd': 'make html',
+                    'env': ('project',
+                            ['']),
+                    'id': 'cmd-1',
+                    'io_encoding': None,
+                    'key_binding': '',
+                    'line_mode': True,
+                    'pseudo_tty': False,
+                    'pypath': ('project',
+                               path([])),
+                    'raise_panel': True,
+                    'rundir': ('custom',
+                               '/home/lloyd/Devel/pyxbee_wkspc/pyxbee/docs'),
+                    'title': ''},
+                   {'autosave': False,
+                    'cmd': 'make clean',
+                    'env': ('project',
+                            ['']),
+                    'id': 'cmd-5',
+                    'io_encoding': None,
+                    'key_binding': '',
+                    'line_mode': True,
+                    'pseudo_tty': False,
+                    'pypath': ('project',
+                               path([])),
+                    'raise_panel': True,
+                    'rundir': ('custom',
+                               '/home/lloyd/Devel/pyxbee_wkspc/pyxbee/docs'),
+                    'title': 'Clean All'}]
+proj.directory-list = [{'dirloc': loc('.'),
+                        'excludes': (),
+                        'filter': '*',
+                        'include_hidden': False,
+                        'recursive': True,
+                        'watch_for_changes': True}]
+proj.file-type = 'shared'
+proj.main-file = loc('ui/gtk3/PyxbMainWin.py')

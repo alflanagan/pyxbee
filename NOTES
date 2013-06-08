@@ -64,3 +64,9 @@ its children in the parent. Looks like a lot of (relatively) small classes
 is the way to go. Not sure if this is a product of how wxPython works or just
 some defect in my understanding.
 
+2013
+Clearly haven't accomplished much lately except to change practically everything 
+about the project. Must take better notes.
+
+The command to load an FTDI driver if the kernel doesn't do so automatically:
+sudo modprobe ftdi_sio

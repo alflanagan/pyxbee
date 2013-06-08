@@ -67,11 +67,14 @@ class NotebookPageSettingContents(SettingContents):
     SETTINGS_COUNT = 9  # max settings/page
 
     def __init__(self, device_name, grid_sizer_to_populate, *args, **kwargs):
+        isinstance(grid_sizer_to_populate, Gtk.Grid)
+        grid_sizer_to_populate.set_row_homogeneous(False)
+        grid_sizer_to_populate.set_hexpand(False)
         self.stg_lbls = {}
         self.stg_entries = {}
         for lbl in self.ATCMDS:
-            self.stg_lbls[lbl] = Gtk.Label(lbl)
-            self.stg_entries[lbl] = Gtk.Entry()
+            self.stg_lbls[lbl] = Gtk.Label(lbl, hexpand=False)
+            self.stg_entries[lbl] = Gtk.Entry(hexpand=False)
             grid_sizer_to_populate.add(self.stg_lbls[lbl])
             grid_sizer_to_populate.attach_next_to(self.stg_entries[lbl],
                                                   self.stg_lbls[lbl],

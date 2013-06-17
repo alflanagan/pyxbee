@@ -117,13 +117,16 @@ class PyxbMainWin(object):
         self.ports.sort()
         for p in self.ports:
             try:
-                #s = serial.Serial(p[0])
-                #s.open()
-                #s.close()
-                if p[2] == 'n/a':
-                    self.ports_list.append((p[0],))
-                else:
-                    self.ports_list.append((p[0] + ": " + p[2],))
+                if 'USB' in p[0]:
+                    pass
+                s = serial.Serial(p[0])
+                if s.isOpen:
+                    s.close()
+                if 'USB' in p[0]:
+                    if p[2] == 'n/a':
+                        self.ports_list.append((p[0],))
+                    else:
+                        self.ports_list.append((p[0] + ": " + p[2],))
             except SerialException:
                 pass  # don't exist, don't add it
 

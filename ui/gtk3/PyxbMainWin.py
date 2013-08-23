@@ -29,8 +29,12 @@ from hardware.xbee.Settings import ReadException
 
 class PyxbMainWin(object):
 
-    def __init__(self, *args, **kwargs):
+    TIMEOUT=2  #seconds
+    "Timeout for serial reads"
+    
+    def __init__(self, baud_rate, *args, **kwargs):
         self.selected_port = ''
+        self.baud_rate = baud_rate
         self.builder = Gtk.Builder()
         my_dir = os.path.dirname(__file__)
         self.builder.add_from_file(os.path.join(my_dir, "PyxbMainWin.glade"))
@@ -93,6 +97,10 @@ class PyxbMainWin(object):
         self.builder.connect_signals(handlers)
         
         self.populate_devices()
+        isinstance(self.text_view, Gtk.TextView)
+        buff = self.text_view.get_buffer()
+        buff.insert_at_cursor("{}.{}.{}".format(Gtk.get_major_version(), Gtk.get_minor_version(), Gtk.get_micro_version()))
+        
         self.win.show_all()
 
     def populate_devices(self, event=None):
@@ -107,7 +115,7 @@ class PyxbMainWin(object):
         self.ports_list.clear()
         for p in self.ports:
             try:
-                s = serial.Serial(p[0])
+                s = serial.Serial(p[0], timeout=self.TIMEOUT)
                 if not self.chkSerial.get_active() and not 'USB' in p[0]:
                     continue
                 if not self.chkUSB.get_active() and 'USB' in p[0]:
@@ -158,15 +166,19 @@ class PyxbMainWin(object):
                         for child in self.page1_child.get_children():
                             self.page1_child.remove(child)
                         self.p1_panel = BasicSettingContents(self.selected_port,
-                                                             self.page1_child)
+                                                             self.page1_child,
+                                                             self.baud_rate
+                                                             )
                         for child in self.page2_child.get_children():
                             self.page2_child.remove(child)
                         self.p2_panel = Network1SettingContents(self.selected_port,
-                                                                self.page2_child)
+                                                                self.page2_child,
+                                                                self.baud_rate)
                         for child in self.page3_child.get_children():
                             self.page3_child.remove(child)
                         self.p3_panel = Network2SettingContents(self.selected_port,
-                                                                self.page3_child)
+                                                                self.page3_child,
+                                                                self.baud_rate)
                     except (SerialException, ReadException) as err:
                         buff = self.text_view.get_buffer()
                         buff.insert_at_cursor("{}: {}\n".format(self.selected_port,
@@ -183,5 +195,5 @@ class PyxbMainWin(object):
 
 
 if __name__ == '__main__':
-    win = PyxbMainWin()
+    win = PyxbMainWin(115200)
     Gtk.main()

@@ -14,7 +14,10 @@ class SettingContents(object):
     Defines common functionality of classes to "own" contents of
     GridSizer set up to display basic settings of the XBee device.
     """
-    def __init__(self, names, labels, entries):
+    TIMEOUT=2  #seconds
+    "Timeout for serial port reads"
+    
+    def __init__(self, names, labels, entries, baud_rate):
         """
         @param names: Names for the settings displayed (any of the ones defined
         in settings module)
@@ -23,9 +26,12 @@ class SettingContents(object):
         @type labels: iterable of Gtk.Label or equivalent
         @param entries: Widgets for entry and display of setting value
         @type entries: iterable of Gtk.Entry or equivalent
+        @param baud_rate: baud rate for Serial port
+        @type baud_rate: integer in Serial.BAUDRATES
         """
         # print(names)
         self.settings = Settings(names)
+        self.baud_rate = baud_rate
         self.stg_lbls = labels
         """Gtk.Label objects for page, indexed by label's text."""
         self.stg_entries = entries
@@ -49,7 +55,7 @@ class SettingContents(object):
 #         dsrdtr=False,          # None: use rtscts setting, dsrdtr
 #                                #override if True or False
 #         interCharTimeout=None  # Inter-character timeout, None to disable
-        self.current_port = Serial(port=device_name)
+        self.current_port = Serial(port=device_name, baudrate=self.baud_rate, timeout=self.TIMEOUT)
         self.xb = ZigBee(self.current_port, shorthand=True, escaped=False)
         assert self.xb
         self.settings.bind(self.xb)
@@ -66,10 +72,11 @@ class NotebookPageSettingContents(SettingContents):
     ATCMDS = ()
     SETTINGS_COUNT = 9  # max settings/page
 
-    def __init__(self, device_name, grid_sizer_to_populate, *args, **kwargs):
+    def __init__(self, device_name, grid_sizer_to_populate, baud_rate, *args, **kwargs):
         isinstance(grid_sizer_to_populate, Gtk.Grid)
         grid_sizer_to_populate.set_row_homogeneous(False)
         grid_sizer_to_populate.set_hexpand(False)
+        self.baud_rate = baud_rate
         self.stg_lbls = {}
         self.stg_entries = {}
         for lbl in self.ATCMDS:
@@ -87,7 +94,8 @@ class NotebookPageSettingContents(SettingContents):
                                                   Gtk.PositionType.RIGHT, 1, 1)
 
         super(NotebookPageSettingContents, self).__init__(self.ATCMDS, self.stg_lbls,
-                                                   self.stg_entries, *args, **kwargs)
+                                                   self.stg_entries, self.baud_rate, 
+                                                   *args, **kwargs)
         self._set_device(device_name)
         self.populate()
         for cmd in self.ATCMDS:

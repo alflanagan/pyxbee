@@ -18,6 +18,10 @@ class ReadException(Exception):
     pass
 
 
+class ReadTimeoutException(Exception):
+    pass
+
+
 class UnboundSetting(object):
     def __init__(self, name, at_cmds, encoding="hex", tooltip=''):
         """

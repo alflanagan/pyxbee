@@ -11,13 +11,13 @@
     <property name="label" translatable="yes">Serial</property>
     <property name="tooltip" translatable="yes">Select to display serial ports in the device list.</property>
     <property name="active">True</property>
-    <signal name="toggled" handler="onDeviceCheckbox" swapped="no"/>
+    <signal name="toggled" handler="onSerialToggled" swapped="no"/>
   </object>
   <object class="GtkToggleAction" id="ListUSBAction">
     <property name="label">USB</property>
     <property name="tooltip" translatable="yes">Select to display USB ports in the device list.</property>
     <property name="active">True</property>
-    <signal name="toggled" handler="onDeviceCheckbox" swapped="no"/>
+    <signal name="toggled" handler="onUSBToggled" swapped="no"/>
   </object>
   <object class="GtkAction" id="TestAction">
     <property name="label" translatable="yes">Test</property>
@@ -92,6 +92,7 @@
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="receives_default">False</property>
+                        <property name="focus_on_click">False</property>
                         <property name="xalign">0</property>
                         <property name="draw_indicator">True</property>
                       </object>

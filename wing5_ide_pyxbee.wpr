@@ -40,5 +40,5 @@ proj.directory-list = [{'dirloc': loc('.'),
                         'include_hidden': False,
                         'recursive': True,
                         'watch_for_changes': True}]
+proj.file-list = [loc('ui/gtk3/ports_chooser.py')]
 proj.file-type = 'shared'
-proj.main-file = loc('ui/gtk3/PyxbMainWin.py')

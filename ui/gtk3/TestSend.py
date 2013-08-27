@@ -76,6 +76,8 @@ class TestSendMainWin(object):
             "onDeviceCheckbox": self.populate_devices,
             #pick a specific device
             "onSelectDevice": self.onSelectDevice,
+            "on_chkUSB_toggled": self.onChkUSB,
+            "on_chkSerial_toggled": self.onChkSerial,
         }
         self.builder.connect_signals(handlers)
         
@@ -83,17 +85,29 @@ class TestSendMainWin(object):
         isinstance(self.text_view, Gtk.TextView)
         buff = self.text_view.get_buffer()
         buff.insert_at_cursor("{}.{}.{}".format(Gtk.get_major_version(), Gtk.get_minor_version(), Gtk.get_micro_version()))
-        
+
         self.win.show_all()
+        
+    def onChkUSB(self, button):
+        #isinstance(button, Gtk.
+        print(*args)
+        print(**kwargs)
+        
+    def onChkSerial(self, *args, **kwargs):
+        print(*args)
+        print(**kwargs)
         
     def onSelectDevice(self, *args, **kwargs):
         print(*args)
         print(**kwargs)
 
     def populate_devices(self):
-        ports = list_ports()
+        ports = list_ports.comports()
 
 
 if __name__ == '__main__':
+    import sys
+    print(sys.path)
+    sys.exit(0)
     win = TestSendMainWin(115200)
     Gtk.main()

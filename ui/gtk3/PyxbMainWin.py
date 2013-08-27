@@ -25,6 +25,7 @@ import serial
 #TODO: need a common top-level package name (and not pyxbee, it's sort-of taken)
 from ui.gtk3.SettingsNotebook import BasicSettingContents, Network1SettingContents, Network2SettingContents
 from hardware.xbee.Settings import ReadException
+from ui.gtk3.ports_chooser import GtkPortChooser
 
 
 class PyxbMainWin(object):
@@ -42,44 +43,34 @@ class PyxbMainWin(object):
         self.win = self.builder.get_object("PyxbMainWin")
         "top-level widget for whole window"
         self.close_btn = self.builder.get_object("btnClose")
+        assert isinstance(self.close_btn, Gtk.Button)
         self.ports_list = self.builder.get_object("liststore1")
         "model for device list"
-        self.ports_view = self.builder.get_object("dev_list_tview")
+        assert isinstance(self.ports_list, Gtk.TreeModel)
+        self.ports_view = self._init_ports_view()
         "view for device list"
+        assert isinstance(self.ports_view, Gtk.TreeView)
         
         self.chkSerial = self.builder.get_object("chkSerial")
+        assert isinstance(self.chkSerial, Gtk.ToggleButton)
         self.chkUSB = self.builder.get_object("chkUSB")
-        isinstance(self.chkSerial, Gtk.CheckButton)
-        isinstance(self.chkUSB, Gtk.CheckButton)
-        #isinstance(self.ports_view, Gtk.TreeView) # hint for editor
-        #self.ports_view
-        #pprint(dir(self.ports_view))
-        self.page1_child = self.builder.get_object("stg_pg1_child")
-        isinstance(self.page1_child, Gtk.Grid)
+        assert isinstance(self.chkUSB, Gtk.ToggleButton)
+        self.chooser = GtkPortChooser(self.ports_list, self.ports_view, 
+                                      self.chkSerial, 
+                                      self.chkUSB, 
+                                      self)
+        
         self.stg_notebook = self.builder.get_object("settings_notebook")
-        self.page1_child.set_property("row-homogeneous", False)
+        assert isinstance(self.stg_notebook, Gtk.Notebook)
+        self.page1_child = self.builder.get_object("stg_pg1_child")
+        assert isinstance(self.page1_child, Gtk.Grid)
 
-        self.page2_child = Gtk.Grid(orientation=Gtk.Orientation.VERTICAL)
-        page2_pos = self.stg_notebook.append_page(self.page2_child,
-                                                  Gtk.Label("Network1"))
-        assert page2_pos == 1
-        self.page2_child.set_property("row-homogeneous", False)
-
-        self.page3_child = Gtk.Grid(orientation=Gtk.Orientation.VERTICAL)
-        page3_pos = self.stg_notebook.append_page(self.page3_child,
-                                                  Gtk.Label("Network2"))
-        assert page3_pos == 2
-        self.page3_child.set_property("row-homogeneous", False)
+        self.page2_child = self._add_new_notebook_page("Network1")
+        self.page3_child = self._add_new_notebook_page("Network2")
 
         self.text_view = self.builder.get_object("textview1")
         "Text output box"
-        renderer = Gtk.CellRendererText()
-        column = Gtk.TreeViewColumn(None, renderer, text=0)
-        #the following is REQUIRED to display ports
-        column.set_sizing(Gtk.TreeViewColumnSizing.FIXED)
-        
-        column.set_widget(None)  # no header
-        self.ports_view.append_column(column)
+        assert isinstance(self.text_view, Gtk.TextView)
 
         #make the standard close box for window work
         #for some reason bad things happen if we try do this with handlers dict below
@@ -90,104 +81,99 @@ class PyxbMainWin(object):
             #close button
             "onCloseAction": Gtk.main_quit,
             #toggle checkbox on device listing
-            "onDeviceCheckbox": self.populate_devices,
+            "onSerialToggled": self.chooser.onSerialToggled,
+            "onUSBToggled": self.chooser.onUSBToggled,
             #pick a specific device
-            "onSelectDevice": self.setup_notebook_pages,
+            "onSelectDevice": self.chooser.onPortChosen,
         }
         self.builder.connect_signals(handlers)
         
-        self.populate_devices()
-        isinstance(self.text_view, Gtk.TextView)
+        self.chooser.updateList()
         buff = self.text_view.get_buffer()
         buff.insert_at_cursor("{}.{}.{}".format(Gtk.get_major_version(), Gtk.get_minor_version(), Gtk.get_micro_version()))
         
         self.win.show_all()
 
-    def populate_devices(self, event=None):
-        "Populates device list. May be called as event handler."
-        try:
-            self.ports = list_ports.comports()
-            #print(self.ports)
-        except TypeError as te:
-            print(te)
-        self.ports.sort()
-        #isinstance(self.ports_list, Gtk.ListStore)
-        self.ports_list.clear()
-        for p in self.ports:
-            try:
-                s = serial.Serial(p[0], timeout=self.TIMEOUT)
-                if not self.chkSerial.get_active() and not 'USB' in p[0]:
-                    continue
-                if not self.chkUSB.get_active() and 'USB' in p[0]:
-                    continue
-                if p[2] == 'n/a':
-                    self.ports_list.append((p[0],))
-                else:
-                    self.ports_list.append((p[0] + ": " + p[2],))
-            except SerialException:
-                #Serial() tried to configure port, and failed; probably doesn't
-                #actually exist on the machine. Debian linuxes appear to create files for
-                #ports that don't exist -- not sure why.
-                pass
-
-    def setup_notebook_pages(self, tree_view, *args):
-        isinstance(tree_view, Gtk.TreeView)
-        try:
-            selection = Gtk.TreeView.get_selection(tree_view)
-        except TypeError:
-            #no selection found
-            return
-        isinstance(selection, Gtk.TreeSelection)
-        #boy are the docs for this function wrong:
-        model, treeiter = selection.get_selected()
-        if not treeiter:
-            #this method may be invoked when there is no selection
-            self.selected_port = None
-            for child in self.page1_child.get_children():
-                self.page1_child.remove(child)
-            for child in self.page2_child.get_children():
-                self.page2_child.remove(child)
-            for child in self.page3_child.get_children():
-                self.page3_child.remove(child)
+    def _init_ports_view(self):
+        """Sets up columns, etc. for Treeview to list ports.
+        
+        Returns
+        -------
+        Gtk.TreeView object with appropriate column, renderer, etc.
+        
+        """
+        ports_view = self.builder.get_object("dev_list_tview")
+        renderer = Gtk.CellRendererText()
+        column = Gtk.TreeViewColumn(None, renderer, text=0)
+        #the following is REQUIRED to display ports
+        column.set_sizing(Gtk.TreeViewColumnSizing.FIXED)
+        
+        column.set_widget(None)  # no header
+        ports_view.append_column(column)
+        return ports_view
+        
+        
+    def _add_new_notebook_page(self, page_label):
+        """Add an additional page to the settings notebook, with label `page_label`.
+        
+        Parameters
+        ----------
+        pae_label : string to set label for tab
+        
+        Returns
+        -------
+        Gtk.Widget which is first child of new page.
+            
+        """
+        notebook_page = Gtk.Grid(orientation=Gtk.Orientation.VERTICAL)
+        self.stg_notebook.append_page(notebook_page, Gtk.Label(page_label))
+        notebook_page.set_property("row-homogeneous", False)
+        return notebook_page
+        
+    def onPortSelected(self, port):
+        self.setup_notebook_pages()
+        
+    def setup_notebook_pages(self):
+        self.selected_port = self.chooser.selectedPort
+        print("setup_notebook_pages(): selected port is " + self.selected_port)
+        if not self.selected_port:
+            for page in (self.page1_child, self.page2_child, self.page3_child):
+                for child in page.get_children():
+                    page.remove(child)
         else:
-            #treeiter is an object but is accepted as index to model, returns a TreeModelRow
-            if model[treeiter][0] != self.selected_port:
-                self.selected_port = model[treeiter][0]
-                if ':' in self.selected_port:
-                    self.selected_port = self.selected_port[:self.selected_port.find(':')]
-    
-                def ui_work(self):
-                    """
-                    Local procedure to actually do the work of updating the user interface.
-                    We make this a procedure and use GObject.idle_add() to allow the window to
-                    set the cursor to a "watch" while the work is done.
-                    """
-                    try:
-                        for child in self.page1_child.get_children():
-                            self.page1_child.remove(child)
-                        self.p1_panel = BasicSettingContents(self.selected_port,
-                                                             self.page1_child,
-                                                             self.baud_rate
-                                                             )
-                        for child in self.page2_child.get_children():
-                            self.page2_child.remove(child)
-                        self.p2_panel = Network1SettingContents(self.selected_port,
-                                                                self.page2_child,
-                                                                self.baud_rate)
-                        for child in self.page3_child.get_children():
-                            self.page3_child.remove(child)
-                        self.p3_panel = Network2SettingContents(self.selected_port,
-                                                                self.page3_child,
-                                                                self.baud_rate)
-                    except (SerialException, ReadException) as err:
-                        buff = self.text_view.get_buffer()
-                        buff.insert_at_cursor("{}: {}\n".format(self.selected_port,
-                                                                str(err)))
-                    finally:
-                        self.win.show_all()
-                        self.win.get_window().set_cursor(None)
+            def ui_work(self):
+                """Local procedure to actually do the work of updating the user interface.
+                We make this a procedure and use GObject.idle_add() to allow the window to
+                set the cursor to a "watch" while the work is done.
+                
+                """
+                try:
+                    for child in self.page1_child.get_children():
+                        self.page1_child.remove(child)
+                    self.p1_panel = BasicSettingContents(self.selected_port,
+                                                         self.page1_child,
+                                                         self.baud_rate
+                                                         )
+                    for child in self.page2_child.get_children():
+                        self.page2_child.remove(child)
+                    self.p2_panel = Network1SettingContents(self.selected_port,
+                                                            self.page2_child,
+                                                            self.baud_rate)
+                    for child in self.page3_child.get_children():
+                        self.page3_child.remove(child)
+                    self.p3_panel = Network2SettingContents(self.selected_port,
+                                                            self.page3_child,
+                                                            self.baud_rate)
+                except (SerialException, ReadException) as err:
+                    buff = self.text_view.get_buffer()
+                    buff.insert_at_cursor("{}: {}\n".format(self.selected_port,
+                                                            str(err)))
+                finally:
+                    self.win.show_all()
+                    self.win.get_window().set_cursor(None)
     
             top_gdk_window = self.win.get_window()
+            #Not working??
             watch = Gdk.Cursor(Gdk.CursorType.WATCH)
             top_gdk_window.set_cursor(watch)
 

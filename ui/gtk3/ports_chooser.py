@@ -64,14 +64,15 @@ class GtkPortChooser(object):
     def onSerialToggled(self, btn):
         pass
     
-    def onUSBToggled(self, byn):
+    def onUSBToggled(self, btn):
         pass
     
     def onPortChosen(self, tview_object):
         """Handler to be called when a new port is selected in TreeView."""
         the_port = self.selectedPort
-        for listener in self.listeners:
-            listener.onPortSelected(the_port)
+        if the_port: #sometimes we get triggered when there is no port
+            for listener in self.listeners:
+                listener.onPortSelected(the_port)
         
     def updateList(self):
         #TODO: get serial and usb toggled state from treeview
@@ -88,6 +89,8 @@ class GtkPortChooser(object):
             selection = Gtk.TreeView.get_selection(self.tview)
         except TypeError:
             #no selection found
+            return None
+        if selection == None:
             return None
         isinstance(selection, Gtk.TreeSelection)
         #boy are the docs for this function wrong:

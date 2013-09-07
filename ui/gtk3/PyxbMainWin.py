@@ -59,7 +59,7 @@ class PyxbMainWin(object):
                                       self.chkSerial, 
                                       self.chkUSB, 
                                       self)
-        
+        self.chooser.updateList()
         self.stg_notebook = self.builder.get_object("settings_notebook")
         assert isinstance(self.stg_notebook, Gtk.Notebook)
         self.page1_child = self.builder.get_object("stg_pg1_child")

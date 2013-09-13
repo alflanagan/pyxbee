@@ -96,6 +96,13 @@ class TestSendMainWin(object):
             "on_chkUSB_toggled": self.ports_chooser.onUSBToggled,
             "on_chkSerial_toggled": self.ports_chooser.onSerialToggled,
             "onSelectDevice": self.ports_chooser.onPortChosen,
+            "b_entry_bkspc": self.b_entry_bkspc,
+            "a_entry_bkspc": self.a_entry_bkspc,
+            "b_entry_paste": self.b_entry_paste,
+            "a_entry_paste": self.a_entry_paste,
+            "b_key_press": self.b_key_press,
+            "a_key_press": self.a_key_press,
+            "on_btnClose_pressed": self.on_btnClose_press,
         }
         self.builder.connect_signals(handlers)
         
@@ -112,6 +119,7 @@ class TestSendMainWin(object):
         
     def onChkSerial(self, button):
         self._print_call()
+        print("onChkSerial")
         
     def onPortSelected(self, port):
         print("selected {}".format(port))
@@ -120,7 +128,29 @@ class TestSendMainWin(object):
     def onCloseAction(self):
         Gtk.main_quit()
 
+    def a_entry_bkspc(self, event):
+        print("a_entry_bkspc(self, {})".format(str(event)))
         
+    def b_entry_bkspc(self, event):
+        print("b_entry_bkspc(self, {})".format(str(event)))
+        
+    def a_entry_paste(self, event):
+        print("a_entry_paste(self, {})".format(str(event)))
+        
+    def b_entry_paste(self, event):
+        print("b_entry_paste(self, {})".format(str(dir(event))))
+        
+    def a_key_press(self, text_view, event_key):
+        print("a_key_press: {}".format(event_key.string))
+        
+    def b_key_press(self, text_view, event_key):
+        isinstance(event_key, Gdk.EventKey)
+        print("b_key_press: {}".format(event_key.string))
+        
+    def on_btnClose_press(self, event):
+        Gtk.main_quit()
+
+
 if __name__ == '__main__':
     import sys
     print(sys.path)

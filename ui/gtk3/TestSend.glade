@@ -298,20 +298,30 @@
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkTextView" id="textview_a">
+                              <object class="GtkScrolledWindow" id="scrolledwindow1">
                                 <property name="visible">True</property>
-                                <property name="can_focus">True</property>
-                                <property name="margin_left">6</property>
-                                <property name="margin_right">5</property>
-                                <property name="margin_top">6</property>
-                                <property name="margin_bottom">3</property>
+                                <property name="can_focus">False</property>
                                 <property name="hexpand">True</property>
                                 <property name="vexpand">True</property>
-                                <property name="wrap_mode">word-char</property>
-                                <property name="buffer">textbuffer1</property>
-                                <signal name="backspace" handler="a_entry_bkspc" swapped="no"/>
-                                <signal name="paste-clipboard" handler="a_entry_paste" swapped="no"/>
-                                <signal name="key-press-event" handler="a_key_press" swapped="no"/>
+                                <property name="hscrollbar_policy">never</property>
+                                <property name="shadow_type">in</property>
+                                <child>
+                                  <object class="GtkTextView" id="textview_a">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">True</property>
+                                    <property name="margin_left">6</property>
+                                    <property name="margin_right">5</property>
+                                    <property name="margin_top">6</property>
+                                    <property name="margin_bottom">3</property>
+                                    <property name="hexpand">True</property>
+                                    <property name="vexpand">True</property>
+                                    <property name="wrap_mode">word-char</property>
+                                    <property name="buffer">textbuffer1</property>
+                                    <signal name="key-press-event" handler="a_key_press" swapped="no"/>
+                                    <signal name="backspace" handler="a_entry_bkspc" swapped="no"/>
+                                    <signal name="paste-clipboard" handler="a_entry_paste" swapped="no"/>
+                                  </object>
+                                </child>
                               </object>
                               <packing>
                                 <property name="left_attach">1</property>
@@ -321,20 +331,30 @@
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkTextView" id="textview_b">
+                              <object class="GtkScrolledWindow" id="scrolledwindow2">
                                 <property name="visible">True</property>
-                                <property name="can_focus">True</property>
-                                <property name="margin_left">6</property>
-                                <property name="margin_right">5</property>
-                                <property name="margin_top">3</property>
-                                <property name="margin_bottom">6</property>
+                                <property name="can_focus">False</property>
                                 <property name="hexpand">True</property>
                                 <property name="vexpand">True</property>
-                                <property name="wrap_mode">word-char</property>
-                                <property name="buffer">textbuffer2</property>
-                                <signal name="backspace" handler="b_entry_bkspc" swapped="no"/>
-                                <signal name="paste-clipboard" handler="b_entry_paste" swapped="no"/>
-                                <signal name="key-press-event" handler="b_key_press" swapped="no"/>
+                                <property name="hscrollbar_policy">never</property>
+                                <property name="shadow_type">in</property>
+                                <child>
+                                  <object class="GtkTextView" id="textview_b">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">True</property>
+                                    <property name="margin_left">6</property>
+                                    <property name="margin_right">5</property>
+                                    <property name="margin_top">3</property>
+                                    <property name="margin_bottom">6</property>
+                                    <property name="hexpand">True</property>
+                                    <property name="vexpand">True</property>
+                                    <property name="wrap_mode">word-char</property>
+                                    <property name="buffer">textbuffer2</property>
+                                    <signal name="key-press-event" handler="b_key_press" swapped="no"/>
+                                    <signal name="backspace" handler="b_entry_bkspc" swapped="no"/>
+                                    <signal name="paste-clipboard" handler="b_entry_paste" swapped="no"/>
+                                  </object>
+                                </child>
                               </object>
                               <packing>
                                 <property name="left_attach">1</property>

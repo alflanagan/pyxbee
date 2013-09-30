@@ -11,6 +11,8 @@ if __name__ == "__main__" and __package__ is None:
 
 import os
 import sys 
+import argparse
+import time
 
 #we use fakegir to generate package info for editor autocomplete. If it's present in PATH, remove it
 fakegir_path = os.path.join(os.path.expanduser('~'), '.cache', 'fakegir')
@@ -26,6 +28,8 @@ import serial
 #TODO: need a common top-level package name (and not pyxbee, it's sort-of taken)
 from hardware.xbee.Settings import ReadException
 from ports_chooser import GtkPortChooser
+from tools.annotations import print_call
+from threading import Thread
 
 
 class TestSendMainWin(object):
@@ -33,17 +37,6 @@ class TestSendMainWin(object):
     TIMEOUT=2  #seconds
     "Timeout for serial reads"
     
-    def _print_call(self):
-        "Prints the function name of its caller, with args"
-        #TODO: Make into function annotation
-        #arg to stack() is # of lines of context to include (not well documented)
-        s = inspect.stack(0)
-        print(s[1])
-        caller_name = s[1][3]
-        caller_frame = s[1][0]
-        #print([x for x, y in inspect.getmembers(caller_frame)])
-        print(caller_name + "()")
-        
     def __init__(self, baud_rate, *args, **kwargs):
         self.baud_rate = baud_rate
         self.builder = Gtk.Builder()
@@ -106,20 +99,33 @@ class TestSendMainWin(object):
         }
         self.builder.connect_signals(handlers)
         
-        isinstance(self.text_view, Gtk.TextView)
-        buff = self.text_view.get_buffer()
-        buff.insert_at_cursor("{}.{}.{}".format(Gtk.get_major_version(), Gtk.get_minor_version(), Gtk.get_micro_version()))
-
+        #isinstance(self.text_view, Gtk.TextView)
+        #buff = self.text_view.get_buffer()
+        #buff.insert_at_cursor("{}.{}.{}".format(Gtk.get_major_version(), Gtk.get_minor_version(), Gtk.get_micro_version()))
+        class RefreshTask(Thread):
+            def __init__(self, main_win, *args, **kwargs):
+                super().__init__(*args, **kwargs)
+                self.parent_win = main_win
+            
+            def run(self):
+                while True:
+                    time.sleep(5)
+                    print("refreshing list", flush=True)
+                    GObject.idle_add(self.parent_win.ports_chooser.updateList)
+        self.refresh_task = RefreshTask(self)
+        
+        self.refresh_task.start()
+        assert self.refresh_task.is_alive()
         self.win.show_all()
+
+    def cancel_threads(self):
+        self.refresh_task.join()
         
     def onChkUSB(self, button):
-        self._print_call()
-        #isinstance(button, Gtk.
-        print("onChkUSB")
+        self.ports_chooser.onUSBToggled(button)
         
     def onChkSerial(self, button):
-        self._print_call()
-        print("onChkSerial")
+        self.ports_chooser.onUSBToggled(button)
         
     def onPortSelected(self, port):
         print("selected {}".format(port))
@@ -144,7 +150,7 @@ class TestSendMainWin(object):
         print("a_key_press: {}".format(event_key.string))
         
     def b_key_press(self, text_view, event_key):
-        isinstance(event_key, Gdk.EventKey)
+        #isinstance(event_key, Gdk.EventKey)
         print("b_key_press: {}".format(event_key.string))
         
     def on_btnClose_press(self, event):
@@ -152,8 +158,18 @@ class TestSendMainWin(object):
 
 
 if __name__ == '__main__':
-    import sys
-    print(sys.path)
-#    sys.exit(0)
-    win = TestSendMainWin(115200)
-    Gtk.main()
+    desc = """
+    A small application to test communication between two XBee radio units.
+    """
+    DEFAULT_BAUD=115200
+    a = argparse.ArgumentParser(description=desc)
+    a.add_argument('--baud', '-b', type=int, dest="baud_rate", default=DEFAULT_BAUD,
+                   help="""
+                   The baud rate for serial i/o (default: %(default)s). This must match the setting
+                   for the XBee radios. NOTE: all radios must have same rate setting.""")
+    parsed = a.parse_args()
+    win = TestSendMainWin(parsed.baud_rate)
+    try:
+        Gtk.main()
+    finally:
+        win.cancel_threads()

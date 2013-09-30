@@ -60,12 +60,16 @@ class GtkPortChooser(object):
             assert hasattr(port_selected_listener, "onPortSelected")
             self.listeners.append(port_selected_listener)
         self.lister = PortsListerHelper(self.store)
+        self.show_usb = self.btnUSB.get_active()
+        self.show_serial = self.btnSerial.get_active()
         
     def onSerialToggled(self, btn):
-        pass
+        self.show_serial = not self.show_serial
+        self.lister.populate_devices(self.show_serial, self.show_usb)
     
     def onUSBToggled(self, btn):
-        pass
+        self.show_usb = not self.show_usb
+        self.lister.populate_devices(self.show_serial, self.show_usb)
     
     def onPortChosen(self, tview_object):
         """Handler to be called when a new port is selected in TreeView."""
@@ -76,6 +80,7 @@ class GtkPortChooser(object):
         
     def updateList(self):
         #TODO: get serial and usb toggled state from treeview
+        print("updating list")
         self.lister.populate_devices(True, True)
         
     @property

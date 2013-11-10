@@ -1,10 +1,7 @@
-#this is a problem. pyserial downloads as pyserial, but installs itself as pyserial-py3k
-#this is not pip-compatible and pip will not detect that pyserial is already installed
-#as workaround, I changed directory name in site-packages and changed references in SOURCES.txt and changed
-#package name in PKG-INFO file 
-#mv site-packages/pyserial-py3k-2.6-py3.3.egg-info/ site-packages/pyserial-2.6-py3.3.egg-info/
+#pyserial < 2.7 installs itself as pyserial-py3k, causes pip to wig out
 pyserial>=2.7
 #nose is required by XBee but not installed automatically
 nose>=1.1
 XBee>=2
 Sphinx>=1.1
+lxml>=3.2

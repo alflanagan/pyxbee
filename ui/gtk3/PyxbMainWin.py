@@ -181,5 +181,5 @@ class PyxbMainWin(object):
 
 
 if __name__ == '__main__':
-    win = PyxbMainWin(115200)
+    win = PyxbMainWin(38400)
     Gtk.main()

@@ -13,6 +13,7 @@ import os
 import sys 
 import argparse
 import time
+from xbee import ZigBee
 
 #we use fakegir to generate package info for editor autocomplete. If it's present in PATH, remove it
 fakegir_path = os.path.join(os.path.expanduser('~'), '.cache', 'fakegir')
@@ -106,17 +107,43 @@ class TestSendMainWin(object):
             def __init__(self, main_win, *args, **kwargs):
                 super().__init__(*args, **kwargs)
                 self.parent_win = main_win
+                assert isinstance(self.parent_win, TestSendMainWin)
             
             def run(self):
                 while True:
-                    time.sleep(5)
+                    time.sleep(3)
                     print("refreshing list", flush=True)
                     GObject.idle_add(self.parent_win.ports_chooser.updateList)
+                    port = self.parent_win.ports_chooser.selectedPort
+                    #if port:
+                    
         self.refresh_task = RefreshTask(self)
         
         self.refresh_task.start()
         assert self.refresh_task.is_alive()
         self.win.show_all()
+        
+    def _set_device(self, device_name):
+        # args to serial
+        #         port = None,           # number of device, numbering starts at
+        #                                # zero. if everything fails, the user
+        #                                # can specify a device string, note
+        #                                # that this isn't portable anymore
+        #                                # port will be opened if one is specified
+        #         baudrate=9600,         # baud rate
+        #         bytesize=EIGHTBITS,    # number of data bits
+        #         parity=PARITY_NONE,    # enable parity checking
+        #         stopbits=STOPBITS_ONE, # number of stop bits
+        #         timeout=None,          # set a timeout value, None to wait forever
+        #         xonxoff=False,         # enable software flow control
+        #         rtscts=False,          # enable RTS/CTS flow control
+        #         writeTimeout=None,     # set a timeout for writes
+        #         dsrdtr=False,          # None: use rtscts setting, dsrdtr
+        #                                #override if True or False
+        #         interCharTimeout=None  # Inter-character timeout, None to disable
+        self.current_port = Serial(port=device_name, baudrate=self.baud_rate, timeout=self.TIMEOUT)
+        self.xb = ZigBee(self.current_port, shorthand=True, escaped=False)
+        assert self.xb
 
     def cancel_threads(self):
         self.refresh_task.join()
@@ -161,7 +188,7 @@ if __name__ == '__main__':
     desc = """
     A small application to test communication between two XBee radio units.
     """
-    DEFAULT_BAUD=115200
+    DEFAULT_BAUD=38400
     a = argparse.ArgumentParser(description=desc)
     a.add_argument('--baud', '-b', type=int, dest="baud_rate", default=DEFAULT_BAUD,
                    help="""

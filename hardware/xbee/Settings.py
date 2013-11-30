@@ -4,7 +4,9 @@ Created on Jul 8, 2012
 @author: lloyd
 '''
 from collections import MutableMapping  # help Settings emulate dictionary
-# from xbee.base import ReadTimeoutException
+from xbee.base import ReadTimeoutException
+from xbee import ZigBee
+
 
 class WriteException(Exception):
     """
@@ -15,10 +17,6 @@ class WriteException(Exception):
 
 
 class ReadException(Exception):
-    pass
-
-
-class ReadTimeoutException(Exception):
     pass
 
 
@@ -76,6 +74,7 @@ class ReadableSetting(UnboundSetting):
     def __init__(self, xbee, timeout=5, *args, **kwargs):
         super(ReadableSetting, self).__init__(*args, **kwargs)
         self.device = xbee
+        assert isinstance(self.device, ZigBee)
         self.timeout = timeout
 
     @staticmethod
@@ -98,6 +97,7 @@ class ReadableSetting(UnboundSetting):
             self.device
         except AttributeError:
             raise ReadException("no xbee device found")
+
         # send each AT cmd, accumulate result
         for cmd in self.at_cmds:
             self.device.at(command=cmd)

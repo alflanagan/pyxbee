@@ -3,5 +3,11 @@ pyserial>=2.7
 #nose is required by XBee but not installed automatically
 nose>=1.1
 XBee>=2
-Sphinx>=1.1
-lxml>=3.2
+#PySide requires module which is not provided by newer versions of Sphinx
+#Sphinx: bad library! bad! Go sit in the corner.
+Sphinx==1.1.3
+#lxml>=3.2
+pyside
+#following not strictly required, but code should pass both checkers
+pep8
+pylint

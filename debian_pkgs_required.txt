@@ -1,0 +1,1 @@
+sudo apt-get install libgirepository1.0-dev

@@ -218,6 +218,17 @@ class Settings(MutableMapping):
     def __len__(self):
         return self.stgs.__len__()
 
+#Structure defining available AT commands for an XBee
+#key is a user-friendly label for the function
+#Structure of values:
+#1. Tuple of length 1 or 2 2-char byte strings defining commands (if 2, first is for high part of
+# result, 2nd is for low part.)
+#2. Longer description of command/returned result.
+#3. Boolean: True if ...
+#4. Encoding: This is a string telling UI how to display/interpret the returned value:
+#    hex: display result as hex string (this is default, if not specified)
+#    ascii: result is ASCII text
+#    enabled: UI should display "enabled" if true, "disabled" if not
 at_cmds = {
     "PAN ID": ((b"ID",), "Network ID for this node"),
     "Serial": ((b"SH", b"SL"), "Serial number for the device", True),

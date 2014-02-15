@@ -4,7 +4,7 @@ Created on Jul 8, 2012
 @author: lloyd
 '''
 from collections import MutableMapping  # help Settings emulate dictionary
-from xbee.base import ReadTimeoutException
+from serial import SerialTimeoutException
 from xbee import ZigBee
 
 
@@ -100,7 +100,7 @@ class ReadableSetting(UnboundSetting):
             self.device.at(command=cmd)
             try:
                 resp = self.device.wait_read_frame(self.timeout)
-            except ReadTimeoutException as e:
+            except SerialTimeoutException as e:
                 raise ReadException("Timeout on command '{}'".format(cmd)) from e
 
             try:
@@ -174,7 +174,6 @@ class Settings(MutableMapping):
     def read_all(self):
         """Reads all settings in collection from the bound device.
 
-        Raises xbee.base.ReadTimeoutException if the device read fails.
         """
         values = {}
 

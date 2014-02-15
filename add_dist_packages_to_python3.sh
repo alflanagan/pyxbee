@@ -4,6 +4,8 @@ DIST_PKGS=/usr/lib/python3/dist-packages
 #echo ${DEST_DIR}
 for F in cairo dbus _dbus_bindings.cpython-33m-x86_64-linux-gnu.so _dbus_glib_bindings.cpython-33m-x86_64-linux-gnu.so gi
 do
-	rm ${DEST_DIR}/${F}
+	if [ -h ${DEST_DIR}/${F} ]; then
+		rm ${DEST_DIR}/${F}
+	fi
 	ln -s ${DIST_PKGS}/${F} ${DEST_DIR}/${F}
 done

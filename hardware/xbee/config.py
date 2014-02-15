@@ -21,7 +21,7 @@ class ReadException(Exception):
 
 
 class UnboundSetting(object):
-    def __init__(self, name, at_cmds, encoding="hex", tooltip=''):
+    def __init__(self, name, setting_cmds, encoding="hex", tooltip=''):
         """
         name: short readable name for setting.
         at_cmds: tuple of one or more two-byte strings, used to get/set value.
@@ -34,7 +34,7 @@ class UnboundSetting(object):
             # "enabled" to display 0 as "disabled" and 1 as "enabled"
         """
         self.name = name
-        self.at_cmds = at_cmds
+        self.setting_cmds = setting_cmds
         self.encoding = encoding
         self.tooltip = tooltip
 
@@ -54,19 +54,16 @@ def disp_version(firmware_version):
     prefix = int.from_bytes(firmware_version[:1], 'big')
     verint = int.from_bytes(firmware_version, 'big')
     vstr = "{:X}".format(verint)
-    if prefix == 0x20:
-        return "{} Coord(AT)".format(vstr)
-    elif prefix == 0x21:
-        return "{} Coord(API)".format(vstr)
-    elif prefix == 0x22:
-        return "{} Routr(AT)".format(vstr)
-    elif prefix == 0x23:
-        return "{} Routr(API)".format(vstr)
-    elif prefix == 0x28:
-        return "{} End(AT)".format(vstr)
-    elif prefix == 0x29:
-        return "{} End(API)".format(vstr)
-    else:
+    vers_strs = {0x20: "{} Coord(AT)",
+                 0x21: "{} Coord(API)",
+                 0x22: "{} Routr(AT)",
+                 0x23: "{} Routr(API)",
+                 0x28: "{} End(AT)",
+                 0x29: "{} End(API)",
+                 }
+    try:
+        return vers_strs[prefix].format(vstr)
+    except KeyError:
         return "{} unknown".format(vstr)
 
 
@@ -99,7 +96,7 @@ class ReadableSetting(UnboundSetting):
             raise ReadException("no xbee device found")
 
         # send each AT cmd, accumulate result
-        for cmd in self.at_cmds:
+        for cmd in self.setting_cmds:
             self.device.at(command=cmd)
             try:
                 resp = self.device.wait_read_frame(self.timeout)
@@ -161,11 +158,11 @@ class Settings(MutableMapping):
             data = list(at_cmds[name])
             # fill in default values depending on current length
             if len(data) == 1:
-                data.append("")
+                data.append("")  # no tooltip
             if len(data) == 2:
-                data.append(False)
+                data.append(False)  # setting not writable
             if len(data) == 3:
-                data.append("hex")
+                data.append("hex")  # returns hex number
             if data[2]:
                 new_bound = ReadableSetting(xbee_device, name=name, at_cmds=data[0],
                                              encoding=data[3], tooltip=data[1])

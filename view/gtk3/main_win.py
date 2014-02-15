@@ -24,7 +24,7 @@ from serial.serialutil import SerialException
 import serial
 #TODO: need a common top-level package name (and not pyxbee, it's sort-of taken)
 from view.gtk3.SettingsNotebook import BasicSettingContents, Network1SettingContents, Network2SettingContents
-from model.xbee.Settings import ReadException
+from model.xbee.config import ReadException
 from view.gtk3.ports_chooser import GtkPortChooser
 
 

@@ -6,7 +6,7 @@ Created on Jun 7, 2012
 from gi.repository import Gtk  # @UnresolvedImport
 from xbee import ZigBee
 from serial import Serial
-from hardware.xbee.Settings import Settings
+from model.xbee.config import Settings
 
 
 class SettingContents(object):

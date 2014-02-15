@@ -1,9 +1,5 @@
 *.pyc
 *~
-.ropeproject/history
-.ropeproject/objectdb
-.metadata
 *.wpu
 pyserial
-hardware/docs
-ui/docs
+fakegir/

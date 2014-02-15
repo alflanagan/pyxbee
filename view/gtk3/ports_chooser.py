@@ -16,9 +16,12 @@ from serial.tools import list_ports
 from serial.serialutil import SerialException
 import serial
 
+from model.ports import PortsList
+
 
 class GtkPortChooser(object):
-    def __init__(self, ports_gtk_list_store, gtk_tree_view, serial_gtk_button, usb_gtk_button, port_selected_listener = []):
+    def __init__(self, ports_gtk_list_store, gtk_tree_view, serial_gtk_button, 
+                 usb_gtk_button, port_selected_listener = []):
         """Creates port chooser and links to UI elements.
         
         The assumption is made that UI elements are defined externally, probably
@@ -41,7 +44,7 @@ class GtkPortChooser(object):
             One or more objects whose `onPortSelected` method will be called when
             the user selects a specific port.
         """
-        #TODO: implement friendlier checks than assert
+        #TODO: implement friendlier checks than assert (should be ValueError)
         assert isinstance(ports_gtk_list_store, Gtk.TreeModel)
         assert isinstance(gtk_tree_view, Gtk.TreeView)
         assert isinstance(serial_gtk_button, Gtk.ToggleButton)
@@ -59,7 +62,7 @@ class GtkPortChooser(object):
             #OK, not iterable
             assert hasattr(port_selected_listener, "onPortSelected")
             self.listeners.append(port_selected_listener)
-        self.lister = PortsListerHelper(self.store)
+        self.lister = PortsList(self.store)
         self.show_usb = self.btnUSB.get_active()
         self.show_serial = self.btnSerial.get_active()
         
@@ -109,54 +112,3 @@ class GtkPortChooser(object):
             if ':' in selected_port:
                 selected_port = selected_port[:selected_port.find(':')]
             return selected_port
-        
-#TODO: better class name, move from UI-specific directory
-class PortsListerHelper(object):
-    TIMEOUT = 2
-    """Timeout (in seconds) for attempting to connect to a serial port."""
-    
-    def __init__(self, gtk_list_store):
-        """Create a list helper.
-        
-        Parameters
-        ----------
-        gtk_list_store : Gtk.TreeModel
-            Model object which will contain the list of ports.
-            
-        """
-        assert isinstance(gtk_list_store, Gtk.TreeModel)
-        self.ports_list = gtk_list_store
-    
-    def populate_devices(self, list_serials, list_usbs):
-        """Populates device list.
-        
-        Parameters
-        ----------
-        list_serials : Boolean
-            If true, non-USB serial ports will be listed.
-        list_usbs : Boolean
-            If true, USB ports emulating serial ports will be listed.
-            
-        """
-        try:
-            self.ports = list_ports.comports()
-            #print(self.ports)
-        except TypeError as te:
-            print(te)
-        self.ports.sort()
-        #isinstance(self.ports_list, Gtk.ListStore)
-        self.ports_list.clear()
-        for p in self.ports:
-            try:
-                s = serial.Serial(p[0], timeout=self.TIMEOUT)
-                if ((list_usbs and 'USB' in p[0]) or list_serials):
-                    if p[2] == 'n/a':
-                        self.ports_list.append((p[0],))
-                    else:
-                        self.ports_list.append((p[0] + ": " + p[2],))
-            except SerialException:
-                #Serial() tried to configure port, and failed; probably doesn't
-                #actually exist on the machine. Debian linuxes appear to create files for
-                #ports that don't exist -- not sure why.
-                pass
-    

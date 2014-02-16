@@ -1,3 +1,4 @@
+# vim: fileencoding=utf-8
 '''
 Created on Aug 22, 2013
 
@@ -10,7 +11,7 @@ if __name__ == "__main__" and __package__ is None:
     __package__ = ""
 
 import os
-import sys 
+import sys
 import argparse
 import time
 from xbee import ZigBee
@@ -20,7 +21,7 @@ fakegir_path = os.path.join(os.path.expanduser('~'), '.cache', 'fakegir')
 if fakegir_path in sys.path:
     #print("fakegir found; ignoring it")
     sys.path.remove(fakegir_path)
-    
+
 import inspect
 from gi.repository import Gtk, Gdk, GObject
 from serial.tools import list_ports
@@ -37,7 +38,7 @@ class TestSendMainWin(object):
 
     TIMEOUT=2  #seconds
     "Timeout for serial reads"
-    
+
     def __init__(self, baud_rate, *args, **kwargs):
         self.baud_rate = baud_rate
         self.builder = Gtk.Builder()
@@ -52,11 +53,11 @@ class TestSendMainWin(object):
         self.ports_view = self.builder.get_object("dev_list_tview")
         "view for device list"
         self.chkSerial = self.builder.get_object("chkSerial")
-        self.chkUSB = self.builder.get_object("chkUSB")        
+        self.chkUSB = self.builder.get_object("chkUSB")
         isinstance(self.chkSerial, Gtk.CheckButton)
         isinstance(self.chkUSB, Gtk.CheckButton)
-        self.ports_chooser = GtkPortChooser(self.ports_list, 
-                                            self.ports_view, 
+        self.ports_chooser = GtkPortChooser(self.ports_list,
+                                            self.ports_view,
                                             self.chkSerial,
                                             self.chkUSB,
                                             self
@@ -75,7 +76,7 @@ class TestSendMainWin(object):
         column = Gtk.TreeViewColumn(None, renderer, text=0)
         #the following is REQUIRED to display ports
         column.set_sizing(Gtk.TreeViewColumnSizing.FIXED)
-        
+
         column.set_widget(None)  # no header
         self.ports_view.append_column(column)
 
@@ -99,7 +100,7 @@ class TestSendMainWin(object):
             "on_btnClose_pressed": self.on_btnClose_press,
         }
         self.builder.connect_signals(handlers)
-        
+
         #isinstance(self.text_view, Gtk.TextView)
         #buff = self.text_view.get_buffer()
         #buff.insert_at_cursor("{}.{}.{}".format(Gtk.get_major_version(), Gtk.get_minor_version(), Gtk.get_micro_version()))
@@ -108,7 +109,7 @@ class TestSendMainWin(object):
                 super().__init__(*args, **kwargs)
                 self.parent_win = main_win
                 assert isinstance(self.parent_win, TestSendMainWin)
-            
+
             def run(self):
                 while True:
                     time.sleep(3)
@@ -116,13 +117,13 @@ class TestSendMainWin(object):
                     GObject.idle_add(self.parent_win.ports_chooser.updateList)
                     port = self.parent_win.ports_chooser.selectedPort
                     #if port:
-                    
+
         self.refresh_task = RefreshTask(self)
-        
+
         self.refresh_task.start()
         assert self.refresh_task.is_alive()
         self.win.show_all()
-        
+
     def _set_device(self, device_name):
         # args to serial
         #         port = None,           # number of device, numbering starts at
@@ -147,13 +148,13 @@ class TestSendMainWin(object):
 
     def cancel_threads(self):
         self.refresh_task.join()
-        
+
     def onChkUSB(self, button):
         self.ports_chooser.onUSBToggled(button)
-        
+
     def onChkSerial(self, button):
         self.ports_chooser.onUSBToggled(button)
-        
+
     def onPortSelected(self, port):
         print("selected {}".format(port))
         self.ports_chooser.updateList()
@@ -163,23 +164,23 @@ class TestSendMainWin(object):
 
     def a_entry_bkspc(self, event):
         print("a_entry_bkspc(self, {})".format(str(event)))
-        
+
     def b_entry_bkspc(self, event):
         print("b_entry_bkspc(self, {})".format(str(event)))
-        
+
     def a_entry_paste(self, event):
         print("a_entry_paste(self, {})".format(str(event)))
-        
+
     def b_entry_paste(self, event):
         print("b_entry_paste(self, {})".format(str(dir(event))))
-        
+
     def a_key_press(self, text_view, event_key):
         print("a_key_press: {}".format(event_key.string))
-        
+
     def b_key_press(self, text_view, event_key):
         #isinstance(event_key, Gdk.EventKey)
         print("b_key_press: {}".format(event_key.string))
-        
+
     def on_btnClose_press(self, event):
         Gtk.main_quit()
 

@@ -1,3 +1,4 @@
+# vim: fileencoding=utf-8
 '''
 Created on Jun 7, 2012
 

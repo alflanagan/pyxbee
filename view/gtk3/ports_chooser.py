@@ -1,3 +1,4 @@
+# vim: fileencoding=utf-8
 """
 Created on Aug 25, 2013
 
@@ -5,7 +6,7 @@ Created on Aug 25, 2013
 
 A module to allow the user to select a serial port from a list of serial ports.
 
-Required UI elements: a GtkTreeView, GtkListStore, and two GtkCheckButtons (to 
+Required UI elements: a GtkTreeView, GtkListStore, and two GtkCheckButtons (to
 toggle display of true serial and USB ports).
 
 """
@@ -20,14 +21,14 @@ from model.ports import PortsList
 
 
 class GtkPortChooser(object):
-    def __init__(self, ports_gtk_list_store, gtk_tree_view, serial_gtk_button, 
+    def __init__(self, ports_gtk_list_store, gtk_tree_view, serial_gtk_button,
                  usb_gtk_button, port_selected_listener = []):
         """Creates port chooser and links to UI elements.
-        
+
         The assumption is made that UI elements are defined externally, probably
         by a layout program such as Glade, and required objects are provided for
         this class to operate upon.
-        
+
         Parameters
         ----------
         ports_gtk_list_store : Gtk.ListStore
@@ -65,33 +66,33 @@ class GtkPortChooser(object):
         self.lister = PortsList(self.store)
         self.show_usb = self.btnUSB.get_active()
         self.show_serial = self.btnSerial.get_active()
-        
+
     def onSerialToggled(self, btn):
         self.show_serial = not self.show_serial
         self.lister.populate_devices(self.show_serial, self.show_usb)
-    
+
     def onUSBToggled(self, btn):
         self.show_usb = not self.show_usb
         self.lister.populate_devices(self.show_serial, self.show_usb)
-    
+
     def onPortChosen(self, tview_object):
         """Handler to be called when a new port is selected in TreeView."""
         the_port = self.selectedPort
         if the_port: #sometimes we get triggered when there is no port
             for listener in self.listeners:
                 listener.onPortSelected(the_port)
-        
+
     def updateList(self):
         #TODO: get serial and usb toggled state from treeview
         print("updating list")
         self.lister.populate_devices(True, True)
-        
+
     @property
     def selectedPort(self):
         """
         The currently selected port (as a string, e.g. "/dev/ttyS1")
         or None if no port is selected.
-        
+
         """
         try:
             selection = Gtk.TreeView.get_selection(self.tview)

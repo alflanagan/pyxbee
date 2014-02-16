@@ -1,3 +1,4 @@
+# vim: fileencoding=utf-8
 from functools import wraps
 import inspect
 

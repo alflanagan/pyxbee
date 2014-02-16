@@ -1,3 +1,4 @@
+# vim: fileencoding=utf-8
 '''
 Created on Jun 23, 2012
 
@@ -11,13 +12,13 @@ if __name__ == "__main__" and __package__ is None:
     __package__ = ""
 
 import os
-import sys 
+import sys
 #we use fakegir to generate package info for editor autocomplete. If it's present in PATH, remove it
 fakegir_path = os.path.join(os.path.expanduser('~'), '.cache', 'fakegir')
 if fakegir_path in sys.path:
     #print("fakegir found; ignoring it")
     sys.path.remove(fakegir_path)
-    
+
 from gi.repository import Gtk, Gdk, GObject
 from serial.tools import list_ports
 from serial.serialutil import SerialException
@@ -32,7 +33,7 @@ class PyxbMainWin(object):
 
     TIMEOUT=2  #seconds
     "Timeout for serial reads"
-    
+
     def __init__(self, baud_rate, *args, **kwargs):
         self.selected_port = ''
         self.baud_rate = baud_rate
@@ -50,14 +51,14 @@ class PyxbMainWin(object):
         self.ports_view = self._init_ports_view()
         "view for device list"
         assert isinstance(self.ports_view, Gtk.TreeView)
-        
+
         self.chkSerial = self.builder.get_object("chkSerial")
         assert isinstance(self.chkSerial, Gtk.ToggleButton)
         self.chkUSB = self.builder.get_object("chkUSB")
         assert isinstance(self.chkUSB, Gtk.ToggleButton)
-        self.chooser = GtkPortChooser(self.ports_list, self.ports_view, 
-                                      self.chkSerial, 
-                                      self.chkUSB, 
+        self.chooser = GtkPortChooser(self.ports_list, self.ports_view,
+                                      self.chkSerial,
+                                      self.chkUSB,
                                       self)
         self.chooser.updateList()
         self.stg_notebook = self.builder.get_object("settings_notebook")
@@ -87,52 +88,52 @@ class PyxbMainWin(object):
             "onSelectDevice": self.chooser.onPortChosen,
         }
         self.builder.connect_signals(handlers)
-        
+
         self.chooser.updateList()
         buff = self.text_view.get_buffer()
         buff.insert_at_cursor("{}.{}.{}".format(Gtk.get_major_version(), Gtk.get_minor_version(), Gtk.get_micro_version()))
-        
+
         self.win.show_all()
 
     def _init_ports_view(self):
         """Sets up columns, etc. for Treeview to list ports.
-        
+
         Returns
         -------
         Gtk.TreeView object with appropriate column, renderer, etc.
-        
+
         """
         ports_view = self.builder.get_object("dev_list_tview")
         renderer = Gtk.CellRendererText()
         column = Gtk.TreeViewColumn(None, renderer, text=0)
         #the following is REQUIRED to display ports
         column.set_sizing(Gtk.TreeViewColumnSizing.FIXED)
-        
+
         column.set_widget(None)  # no header
         ports_view.append_column(column)
         return ports_view
-        
-        
+
+
     def _add_new_notebook_page(self, page_label):
         """Add an additional page to the settings notebook, with label `page_label`.
-        
+
         Parameters
         ----------
         pae_label : string to set label for tab
-        
+
         Returns
         -------
         Gtk.Widget which is first child of new page.
-            
+
         """
         notebook_page = Gtk.Grid(orientation=Gtk.Orientation.VERTICAL)
         self.stg_notebook.append_page(notebook_page, Gtk.Label(page_label))
         notebook_page.set_property("row-homogeneous", False)
         return notebook_page
-        
+
     def onPortSelected(self, port):
         self.setup_notebook_pages()
-        
+
     def setup_notebook_pages(self):
         self.selected_port = self.chooser.selectedPort
         print("setup_notebook_pages(): selected port is " + self.selected_port)
@@ -145,7 +146,7 @@ class PyxbMainWin(object):
                 """Local procedure to actually do the work of updating the user interface.
                 We make this a procedure and use GObject.idle_add() to allow the window to
                 set the cursor to a "watch" while the work is done.
-                
+
                 """
                 try:
                     for child in self.page1_child.get_children():
@@ -171,7 +172,7 @@ class PyxbMainWin(object):
                 finally:
                     self.win.show_all()
                     self.win.get_window().set_cursor(None)
-    
+
             top_gdk_window = self.win.get_window()
             #Not working??
             watch = Gdk.Cursor(Gdk.CursorType.WATCH)

@@ -1,3 +1,4 @@
+# vim: fileencoding=utf-8
 '''
 Unit tests for the Settings module.
 

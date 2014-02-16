@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+# vim: fileencoding=utf-8
 from __future__ import division, print_function, unicode_literals
 
 #Copyright 2012 A. Lloyd Flanagan

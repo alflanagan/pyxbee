@@ -1,3 +1,4 @@
+# vim: fileencoding=utf-8
 """
 A module of class(es) to interact with a machine's input/output ports.
 

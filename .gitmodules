@@ -1,0 +1,4 @@
+[submodule "pip-tools"]
+	path = pip-tools
+	url = https://github.com/nvie/pip-tools.git
+	branch = future

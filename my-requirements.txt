@@ -1,0 +1,6 @@
+#stuff I personally use, not required for dev or production
+elpy
+ipython
+mccabe  # dependency of elpy
+flake8  # dependency of elpy
+pyflakes  # dependency of elpy

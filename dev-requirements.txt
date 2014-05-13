@@ -1,0 +1,4 @@
+astroid
+logilab-common
+pep8
+pylint

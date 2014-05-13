@@ -1,0 +1,7 @@
+#this is a list of top-level dependencies, for a future version of pip-tools
+#see http://nvie.com/posts/better-package-management/
+#pip-tools  # currently checking out future branch as git submodule
+pyserial
+PySide
+Sphinx
+XBee

@@ -1,0 +1,3 @@
+#packages not required for production, but important for developers
+pep8
+pylint
